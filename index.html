@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Медкорпус Конохи — медицина мира Наруто</title>
+  <meta name="description" content="Справочник по медицине мира Наруто: ирьё-ниндзюцу, госпиталь Конохи, медицинские техники, яды и противоядия, устав медкорпуса и аттестация.">
+  <meta name="theme-color" content="#0a0e13">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="Медкорпус Конохи — медицина мира Наруто">
+  <meta property="og:description" content="Справочник по медицине мира Наруто: ирьё-ниндзюцу, госпиталь Конохи, техники, яды и устав медкорпуса.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    document.documentElement.classList.add("js");
+    try { var t = localStorage.getItem("medcorpus-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержанию</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+        <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+        <span class="logo-text">
+          <span class="logo-title">Медкорпус</span>
+          <span class="logo-sub">木ノ葉医療班</span>
+        </span>
+      </a>
+
+      <nav class="nav" id="nav" aria-label="Основная навигация">
+        <a href="index.html">Главная</a>
+        <a href="index.html#sostav">Состав</a>
+        <a href="istoriya.html">История</a>
+        <a href="tehniki.html">Техники</a>
+        <a href="mediki.html">Медики</a>
+        <a href="apteka.html">Аптека</a>
+        <a href="reglament.html">Устав</a>
+        <a href="quiz.html">Аттестация</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Включить светлую тему" aria-pressed="false">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"></path>
+          </svg>
+        </button>
+        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Состав -->
+    <section class="section roster" id="sostav" aria-labelledby="sostavTitle">
+      <div class="container">
+        <div class="roster__head reveal">
+          <span class="eyebrow">Состав</span>
+          <h2 class="roster__title roster__title--lead" id="sostavTitle">Руководство</h2>
+          <p class="lead">Глава Медицинского Корпуса и Заместитель Главы. Нажмите на карточку, чтобы открыть фото, имя, ранг, должности, клан, статус, выговоры и Discord.</p>
+        </div>
+
+        <div class="roster-lead" id="rosterLead"></div>
+
+        <h3 class="roster__title">Основной состав</h3>
+        <div class="roster-list" id="rosterList"></div>
+        <p class="roster-empty" id="rosterEmpty" hidden>Основной состав пока пуст.</p>
+
+        <div class="section__foot">
+          <a class="btn btn--ghost btn--small" href="login.html">Войти в аккаунт</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Главный блок -->
+    <section class="hero">
+      <div class="hero__inner">
+        <div class="hero__text">
+          <span class="badge"><span class="badge__dot"></span> Медкорпус Конохи · открытый архив</span>
+          <p class="hero__jp">医療忍術 · 木ノ葉医療班</p>
+          <h1>Медицина мира <span class="grad">Наруто</span></h1>
+          <p class="lead">Как в мире шиноби спасают жизни: ирьё-ниндзюцу, госпиталь Конохи, токсикология, проклятые печати и полевые госпитали Четвёртой мировой войны. Справочник для тех, кто хочет разобраться в каноне — и увидеть, как из фантастики собирается настоящая система здравоохранения.</p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="tehniki.html">
+              Изучить техники
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </a>
+            <a class="btn btn--ghost" href="quiz.html">Пройти аттестацию</a>
+          </div>
+        </div>
+
+        <div class="hero__art" aria-hidden="true">
+          <img src="images/emblem.svg" alt="" width="400" height="400">
+        </div>
+      </div>
+    </section>
+
+    <!-- Цифры -->
+    <div class="container">
+      <div class="stats">
+        <div class="stat">
+          <b><span data-count="12">12</span></b>
+          <span>техник в справочнике</span>
+        </div>
+        <div class="stat">
+          <b><span data-count="8">8</span></b>
+          <span>ключевых медиков</span>
+        </div>
+        <div class="stat">
+          <b><span data-count="6">6</span></b>
+          <span>направлений помощи</span>
+        </div>
+        <div class="stat">
+          <b><span data-count="3">3</span></b>
+          <span>заповеди медкорпуса</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Направления -->
+    <section class="section">
+      <div class="container">
+        <div class="section__head reveal">
+          <span class="eyebrow">Направления</span>
+          <h2>Шесть отделений одного корпуса</h2>
+          <p class="lead">Медицина в мире Наруто — это не только «зелёные ладони». Это логистика, яды, печати, реабилитация и обучение. Ниже — карта того, чем занимается медкорпус.</p>
+        </div>
+
+        <div class="grid">
+          <article class="card reveal">
+            <div class="kanji">医</div>
+            <h3>Полевая медицина</h3>
+            <p>Первая линия помощи на миссиях: остановка кровотечения, стабилизация раненого и эвакуация в тыл. Медик работает вторым номером и никогда не идёт в лобовую атаку.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="kanji kanji--green">病</div>
+            <h3>Госпиталь Конохи</h3>
+            <p>Стационар, операционные и палаты восстановления. Здесь лечат переломы после тренировок, последствия печатей и ранения, полученные на войне.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="kanji kanji--gold">毒</div>
+            <h3>Токсикология</h3>
+            <p>Яды Акацуки, иглы Шизуне, яд Сасори. Медкорпус учится распознавать токсин по симптомам и варить противоядие быстрее, чем яд убьёт пациента.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="kanji kanji--cyan">印</div>
+            <h3>Печати и барьеры</h3>
+            <p>Лечебные печати, барьеры для операций и печать ста сил. Чакра, сохранённая годами, способна вернуть бойца в строй за секунды.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="kanji">心</div>
+            <h3>Поддержка и связь</h3>
+            <p>Ментальная связь, сенсорика и распределение раненых по приоритету. В большой войне победу приносит не только скальпель, но и вовремя переданный приказ.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="kanji kanji--green">学</div>
+            <h3>Обучение</h3>
+            <p>Академия, практика в госпитале, экзамен на ирьё-нина. Медиком нельзя стать за неделю: нужен идеальный контроль чакры и холодная голова.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ключевые фигуры -->
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section__head reveal">
+          <span class="eyebrow">Персоналии</span>
+          <h2>Те, кто держал скальпель</h2>
+          <p class="lead">От основательницы системы до полевого медика, погибшего на задании. У каждой фигуры — своя роль в истории медкорпуса.</p>
+        </div>
+
+        <div class="grid">
+          <article class="card person reveal">
+            <div class="person__top">
+              <div class="person__avatar" aria-hidden="true">綱</div>
+              <div>
+                <h3>Цунаде Сенджу</h3>
+                <p class="person__role">Основатель системы</p>
+              </div>
+            </div>
+            <p>Легендарная Саннин, внучка Первого Хокаге. Создала институт медицинских ниндзя, сформулировала правила поведения медика и приручила Кацую.</p>
+            <a class="link-more" href="mediki.html">Подробнее</a>
+          </article>
+
+          <article class="card person reveal">
+            <div class="person__top">
+              <div class="person__avatar" aria-hidden="true">桜</div>
+              <div>
+                <h3>Сакура Харуно</h3>
+                <p class="person__role">Глава госпиталя</p>
+              </div>
+            </div>
+            <p>Ученица Цунаде, снявшая яд Сасори и освоившая Печать ста сил. В эпоху Боруто — одна из тех, кто держит на себе всю больничную систему Конохи.</p>
+            <a class="link-more" href="mediki.html">Подробнее</a>
+          </article>
+
+          <article class="card person reveal">
+            <div class="person__top">
+              <div class="person__avatar" aria-hidden="true">兜</div>
+              <div>
+                <h3>Кабуто Якуши</h3>
+                <p class="person__role">Тёмная сторона</p>
+              </div>
+            </div>
+            <p>Медик госпиталя и шпион Орочимару. Его скальпель чакры резал мышцы, не оставляя следа на коже — и напоминал, что мастерство не делает человека добрым.</p>
+            <a class="link-more" href="mediki.html">Подробнее</a>
+          </article>
+        </div>
+
+        <div class="section__foot">
+          <a class="btn btn--ghost" href="mediki.html">Все медики корпуса</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Цитата + начало -->
+    <section class="section">
+      <div class="container">
+        <div class="grid grid--2">
+          <figure class="quote reveal">
+            <blockquote>Медик не ищет славы. Его победа — это шиноби, который вернулся домой живым.</blockquote>
+            <figcaption>Цунаде Сенджу — принцип, на котором держится медкорпус (свободный пересказ)</figcaption>
+          </figure>
+
+          <div class="reveal">
+            <span class="eyebrow">С чего начать</span>
+            <h2>Три шага в архив</h2>
+            <ol class="steps" style="margin-top:22px">
+              <li><strong>История.</strong> Понять, как клановая медицина превратилась в систему с правилами и экзаменами.</li>
+              <li><strong>Техники.</strong> Разобрать, чем лечение отличается от хирургии, а печать — от реанимации.</li>
+              <li><strong>Устав и аттестация.</strong> Проверить, готовы ли вы действовать по протоколу под давлением.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section section--tight">
+      <div class="container">
+        <div class="cta reveal">
+          <div>
+            <span class="eyebrow">Аттестация</span>
+            <h2>Восемь вопросов медкорпуса</h2>
+            <p>Техники, яды, правила и имена. Проверьте, в каком звании вы вошли бы в госпиталь Конохи.</p>
+          </div>
+          <div class="cta__actions">
+            <a class="btn btn--primary" href="quiz.html">Начать проверку</a>
+            <a class="btn btn--ghost" href="reglament.html">Сначала устав</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+            <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+            <span class="logo-text">
+              <span class="logo-title">Медкорпус</span>
+              <span class="logo-sub">木ノ葉医療班</span>
+            </span>
+          </a>
+          <p class="footer-about">Учебный справочник по медицинским практикам мира Наруто: техники, яды, устав и полевые протоколы.</p>
+        </div>
+
+        <div>
+          <h4>Разделы</h4>
+          <ul class="footer-links">
+            <li><a href="istoriya.html">История медицины</a></li>
+            <li><a href="tehniki.html">Техники</a></li>
+            <li><a href="mediki.html">Медики</a></li>
+            <li><a href="apteka.html">Аптека</a></li>
+            <li><a href="reglament.html">Устав</a></li>
+            <li><a href="quiz.html">Аттестация</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>О проекте</h4>
+          <p class="footer-note">Фан-проект по вселенной «Наруто» Масаси Кисимото. Часть формулировок и разделов — учебная реконструкция, а не дословный канон. Вся медицина здесь вымышленная и не является медицинской рекомендацией.</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> Медкорпус Конохи · 木ノ葉医療班</span>
+        <span>Статический сайт для GitHub Pages</span>
+      </div>
+    </div>
+  </footer>
+
+  <button class="to-top" id="toTop" type="button" aria-label="Наверх">↑</button>
+
+  <dialog class="member-dialog" id="memberDialog" aria-labelledby="memberDialogTitle">
+    <div id="memberDialogBody"></div>
+  </dialog>
+
+  <script src="js/store.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/roster.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
