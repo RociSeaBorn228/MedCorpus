@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Устав медкорпуса — Медкорпус Конохи</title>
+  <meta name="description" content="Устав медицинского корпуса Конохи: правила медика, сортировка раненых, запреты, структура корпуса и чек-лист готовности к выходу.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    document.documentElement.classList.add("js");
+    try { var t = localStorage.getItem("medcorpus-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержанию</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+        <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+        <span class="logo-text">
+          <span class="logo-title">Медкорпус</span>
+          <span class="logo-sub">木ノ葉医療班</span>
+        </span>
+      </a>
+      <nav class="nav" id="nav" aria-label="Основная навигация">
+        <a href="index.html">Главная</a>
+        <a href="index.html#sostav">Состав</a>
+        <a href="istoriya.html">История</a>
+        <a href="tehniki.html">Техники</a>
+        <a href="mediki.html">Медики</a>
+        <a href="apteka.html">Аптека</a>
+        <a href="reglament.html">Устав</a>
+        <a href="quiz.html">Аттестация</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Включить светлую тему" aria-pressed="false">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"></path></svg>
+        </button>
+        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+      <div class="page-head">
+        <p class="breadcrumb"><a href="index.html">Главная</a>
+        <span>/</span>Устав</p>
+        <h1>Устав <span class="grad">медкорпуса</span></h1>
+        <p class="lead">Документ, который отличает медика от целителя-одиночки. Здесь описано, как действовать, когда времени нет, а решений больше, чем рук. Учебная редакция: формулировки адаптированы для сайта.</p>
+      </div>
+
+      <section class="section section--tight">
+        <figure class="quote reveal">
+          <blockquote>Ты не спасаешь всех. Ты спасаешь тех, кого успеваешь спасти, — и делаешь так, чтобы таких было больше.</blockquote>
+          <figcaption>Вступительная лекция медкорпуса (реконструкция)</figcaption>
+        </figure>
+      </section>
+
+      <section class="section">
+        <div class="section__head reveal">
+          <span class="eyebrow">Статьи</span>
+          <h2>Четыре правила, которые не обсуждаются</h2>
+        </div>
+
+        <div class="grid grid--2">
+          <article class="card reveal">
+            <div class="tech__head">
+              <div class="kanji">壱</div>
+              <span class="rank rank--s" title="Статья 1">01</span>
+            </div>
+            <h3>Медик не сражается на передовой</h3>
+            <p>Его задача — лечить, а не выигрывать дуэли. Медик, ввязавшийся в бой, оставляет без помощи всю команду. Исключение одно: защита пациента, когда отступить нельзя.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="tech__head">
+              <div class="kanji kanji--gold">弐</div>
+              <span class="rank rank--a" title="Статья 2">02</span>
+            </div>
+            <h3>Медик обязан выжить</h3>
+            <p>Это не трусость, а расчёт. Погибший медик не спасёт никого. Поэтому медика прикрывают, а он, в свою очередь, не тратит себя на бессмысленный риск.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="tech__head">
+              <div class="kanji kanji--green">参</div>
+              <span class="rank rank--b" title="Статья 3">03</span>
+            </div>
+            <h3>Сначала сортировка</h3>
+            <p>При массовых ранениях лечат не того, кто громче кричит, а того, кого ещё можно спасти. Холодная оценка приоритетов сохраняет больше жизней, чем героический рывок к одному.</p>
+          </article>
+
+          <article class="card reveal">
+            <div class="tech__head">
+              <div class="kanji kanji--cyan">四</div>
+              <span class="rank rank--b" title="Статья 4">04</span>
+            </div>
+            <h3>Информация — часть лечения</h3>
+            <p>Диагноз, доза, время, реакция. Медик, скрывший данные о пациенте, ставит под угрозу следующего, кто будет его лечить. Записи ведутся даже под обстрелом — коротко, но честно.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section--alt">
+        <div class="section__head reveal">
+          <span class="eyebrow">Протокол</span>
+          <h2>Сортировка раненых</h2>
+          <p class="lead">Четыре метки, которые медик ставит до начала лечения. Ошибка в метке стоит дороже ошибки в технике.</p>
+        </div>
+
+        <div class="table-wrap reveal">
+          <table>
+            <thead>
+              <tr>
+                <th>Метка</th>
+                <th>Состояние</th>
+                <th>Действие</th>
+                <th>Срок</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Красная</strong></td>
+                <td>Угроза жизни: массивное кровотечение, остановка дыхания, шок.</td>
+                <td>Немедленная стабилизация, затем эвакуация.</td>
+                <td>Секунды</td>
+              </tr>
+              <tr>
+                <td><strong>Жёлтая</strong></td>
+                <td>Тяжёлые ранения, но состояние стабильно.</td>
+                <td>Обезболивание, повязка, очередь на операцию.</td>
+                <td>До часа</td>
+              </tr>
+              <tr>
+                <td><strong>Зелёная</strong></td>
+                <td>Лёгкие ранения, самостоятельное передвижение.</td>
+                <td>Само- и взаимопомощь, наблюдение.</td>
+                <td>Может ждать</td>
+              </tr>
+              <tr>
+                <td><strong>Чёрная</strong></td>
+                <td>Ранения, несовместимые с жизнью при текущих ресурсах.</td>
+                <td>Обезболивание и присутствие рядом; ресурсы — тем, кого можно спасти.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--warn" style="margin-top:22px">
+          <strong>Самое трудное решение.</strong> Чёрная метка — не приговор человеку, а распределение ограниченных сил. Именно поэтому её ставят двое: медик и командир, если он рядом.
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="grid grid--2">
+          <div class="reveal">
+            <span class="eyebrow">Запреты</span>
+            <h2>Что нельзя делать медику</h2>
+            <ul class="checklist" style="margin-top:22px">
+              <li>Применять запретные техники и эксперименты на живых без прямого приказа и согласия.</li>
+              <li>Скрывать диагноз от пациента и от следующего медика.</li>
+              <li>Лечить по памяти, не проверив дозу и совместимость средств.</li>
+              <li>Брать на себя чужую операцию, если не хватает квалификации.</li>
+              <li>Оставлять раненого без метки и без записи — «просто потому, что некогда».</li>
+            </ul>
+          </div>
+
+          <div class="reveal">
+            <span class="eyebrow">Структура</span>
+            <h2>Кто за что отвечает</h2>
+            <div class="table-wrap" style="margin-top:22px">
+              <table style="min-width:0">
+                <tbody>
+                  <tr>
+                    <td><strong>Глава корпуса</strong></td>
+                    <td>Стратегия, распределение медиков, запреты и допуски.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Полевое отделение</strong></td>
+                    <td>Помощь на миссиях, эвакуация, первая линия.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Госпитальное</strong></td>
+                    <td>Операции, стационар, восстановление.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Токсикологическое</strong></td>
+                    <td>Яды, антидоты, анализ состава.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Исследовательское</strong></td>
+                    <td>Новые техники, печати, работа с редкими случаями.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Учебное</strong></td>
+                    <td>Академия, практика, аттестация медиков.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tight" style="padding-bottom:60px">
+        <div class="section__head reveal">
+          <span class="eyebrow">Памятка</span>
+          <h2>Чек-лист перед выходом</h2>
+        </div>
+        <ul class="checklist reveal" style="max-width:820px">
+          <li>Аптечка укомплектована, сроки и дозы проверены.</li>
+          <li>Известны состав команды, её слабые места и план эвакуации.</li>
+          <li>Есть запас антидотов под вероятные угрозы региона.</li>
+          <li>Определено место сбора раненых и способ связи с медкорпусом.</li>
+          <li>Медик знает, кому передаёт пациента, если сам выйдет из строя.</li>
+        </ul>
+
+        <div class="callout" style="margin-top:24px">
+          <strong>Дисклеймер.</strong> Это художественный текст по вселенной «Наруто». Он не является уставом, медицинской инструкцией или руководством к действию в реальной жизни.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+            <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+            <span class="logo-text">
+              <span class="logo-title">Медкорпус</span>
+              <span class="logo-sub">木ノ葉医療班</span>
+            </span>
+          </a>
+          <p class="footer-about">Учебный справочник по медицинским практикам мира Наруто: техники, яды, устав и полевые протоколы.</p>
+        </div>
+        <div>
+          <h4>Разделы</h4>
+          <ul class="footer-links">
+            <li><a href="istoriya.html">История медицины</a></li>
+            <li><a href="tehniki.html">Техники</a></li>
+            <li><a href="mediki.html">Медики</a></li>
+            <li><a href="apteka.html">Аптека</a></li>
+            <li><a href="reglament.html">Устав</a></li>
+            <li><a href="quiz.html">Аттестация</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>О проекте</h4>
+          <p class="footer-note">Фан-проект по вселенной «Наруто» Масаси Кисимото. Часть формулировок и разделов — учебная реконструкция, а не дословный канон. Вся медицина здесь вымышленная и не является медицинской рекомендацией.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> Медкорпус Конохи · 木ノ葉医療班</span>
+        <span>Статический сайт для GitHub Pages</span>
+      </div>
+    </div>
+  </footer>
+
+  <button class="to-top" id="toTop" type="button" aria-label="Наверх">↑</button>
+  <script src="js/store.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
