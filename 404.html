@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Страница не найдена — Медкорпус Конохи</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    document.documentElement.classList.add("js");
+    try { var t = localStorage.getItem("medcorpus-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <main id="main">
+    <div class="container">
+      <div class="page-head" style="padding-top:clamp(60px,12vw,120px)">
+        <p class="breadcrumb">Ошибка 404</p>
+        <h1>Такой палаты <span class="grad">нет</span></h1>
+        <p class="lead">Страница потерялась где-то между архивом и полевым госпиталем. Вернитесь на главную — там весь медкорпус на месте.</p>
+        <div class="hero__actions" style="margin-top:26px">
+          <a class="btn btn--primary" href="index.html">На главную</a>
+          <a class="btn btn--ghost" href="tehniki.html">К техникам</a>
+        </div>
+      </div>
+
+      <section class="section">
+        <div class="cta">
+          <div>
+            <span class="eyebrow">Маршрут</span>
+            <h2>Куда идти дальше</h2>
+            <p>История медкорпуса, каталог техник, аптека с ядами и противоядиями, устав и аттестация — всё доступно из меню.</p>
+          </div>
+          <div class="cta__actions">
+            <a class="btn btn--ghost" href="istoriya.html">История</a>
+            <a class="btn btn--ghost" href="quiz.html">Аттестация</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/store.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
