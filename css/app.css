@@ -622,6 +622,40 @@
 }
 .member-facts dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
+/* Блок управления для разработчика */
+.member-admin {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px dashed rgba(224, 82, 82, 0.4);
+  border-radius: 12px;
+  background: rgba(224, 82, 82, 0.05);
+}
+.member-admin__head { display: grid; gap: 4px; }
+.member-admin__head .eyebrow { margin: 0; }
+.member-admin__head p { margin: 0; font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.member-admin__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.member-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.btn--danger {
+  border-color: rgba(224, 82, 82, 0.55);
+  color: #ff9d9d;
+}
+.btn--danger:hover {
+  border-color: #e05252;
+  color: #ffd0d0;
+  background: rgba(224, 82, 82, 0.12);
+}
+[data-theme="light"] .btn--danger { color: #b42318; }
+
+
 /* ---------- Личный кабинет ---------- */
 .account-grid {
   display: grid;
