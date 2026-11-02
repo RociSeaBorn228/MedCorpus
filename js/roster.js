@@ -7,6 +7,7 @@
   var leadHost = document.getElementById("rosterLead");
   var listHost = document.getElementById("rosterList");
   var emptyHost = document.getElementById("rosterEmpty");
+  var countHost = document.getElementById("rosterCount");
   var dialog = document.getElementById("memberDialog");
   var dialogBody = document.getElementById("memberDialogBody");
 
@@ -33,12 +34,6 @@
     var count = MCStore.warningCount(user);
     return '<span class="warn ' + (count.oral ? "warn--on" : "") + '">Устные ' + count.oral + " / 3</span>" +
       '<span class="warn ' + (count.written ? "warn--on" : "") + '">Письменные ' + count.written + " / 2</span>";
-  }
-
-  function warningsShort(user) {
-    var count = MCStore.warningCount(user);
-    if (!count.total) return '<span class="roster-row__warn">Выговоров нет</span>';
-    return '<span class="roster-row__warn roster-row__warn--on">Выговоры: ' + count.total + "</span>";
   }
 
   function leaderCard(user, roleLabel) {
@@ -77,7 +72,6 @@
         "</span>" +
       "</span>" +
       '<span class="roster-row__positions">' + positionsHTML(user) + "</span>" +
-      warningsShort(user) +
       statusHTML(user) +
       "</button>";
   }
@@ -96,6 +90,7 @@
 
     listHost.innerHTML = rest.map(row).join("");
     if (emptyHost) emptyHost.hidden = rest.length > 0;
+    if (countHost) countHost.textContent = "Участников: " + rest.length;
   }
 
   function openMember(user) {
