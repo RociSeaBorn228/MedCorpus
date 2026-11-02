@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>История медицины — Медкорпус Конохи</title>
+  <meta name="description" content="Как медицина мира Наруто прошла путь от клановых травников до единой системы ирьё-нин: реформы Цунаде, войны, разрушение Конохи и Четвёртая мировая война.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    document.documentElement.classList.add("js");
+    try { var t = localStorage.getItem("medcorpus-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержанию</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+        <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+        <span class="logo-text">
+          <span class="logo-title">Медкорпус</span>
+          <span class="logo-sub">木ノ葉医療班</span>
+        </span>
+      </a>
+      <nav class="nav" id="nav" aria-label="Основная навигация">
+        <a href="index.html">Главная</a>
+        <a href="index.html#sostav">Состав</a>
+        <a href="istoriya.html">История</a>
+        <a href="tehniki.html">Техники</a>
+        <a href="mediki.html">Медики</a>
+        <a href="apteka.html">Аптека</a>
+        <a href="reglament.html">Устав</a>
+        <a href="quiz.html">Аттестация</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Включить светлую тему" aria-pressed="false">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"></path></svg>
+        </button>
+        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+      <nav class="page-head" aria-label="Хлебные крошки">
+        <p class="breadcrumb"><a href="index.html">Главная</a>
+        <span>/</span>История</p>
+        <h1>От травников до <span class="grad">медкорпуса</span></h1>
+        <p class="lead">Медицина в мире Наруто не появилась в один день. Сначала — клановые знания и травы, потом — госпиталь, затем — жёсткая система правил и, наконец, единый медкорпус альянса. Вот как это происходило.</p>
+      </nav>
+
+      <section class="section section--tight">
+        <div class="timeline">
+          <article class="timeline__item reveal">
+            <span class="timeline__year">Эпоха кланов</span>
+            <h3>Лечение как семейное ремесло</h3>
+            <p>До основания Конохи не было ни госпиталей, ни экзаменов. Знания о травах, ядах и печатях передавались внутри кланов и часто были оружием не хуже меча. Раненый боец мог рассчитывать на помощь сородича, но не на систему.</p>
+          </article>
+
+          <article class="timeline__item reveal">
+            <span class="timeline__year">Основание Конохи</span>
+            <h3>Появление институтов</h3>
+            <p>С образованием Скрытого Листа появилась возможность содержать постоянные здания, склады и специалистов. Медицина стала частью деревни, а не только клана: появились стационарные палаты и первые официальные должности.</p>
+          </article>
+
+          <article class="timeline__item reveal">
+            <span class="timeline__year">Реформы Цунаде</span>
+            <h3>Система ирьё-нин</h3>
+            <p>Цунаде Сенджу превратила разрозненные навыки в профессию. Появились стандарты обучения, распределение медиков по командам и правила поведения на поле боя. Именно тогда лечение перестало быть импровизацией и стало дисциплиной.</p>
+          </article>
+
+          <article class="timeline__item reveal">
+            <span class="timeline__year">Вторая и Третья войны</span>
+            <h3>Проверка на прочность</h3>
+            <p>Массовые ранения показали, что одного таланта мало: нужны сортировка, эвакуация и запас антидотов. В эти годы в госпитале Конохи работал Кабуто Якуши, а Орочимару вёл исследования, которые позже стали запретными.</p>
+          </article>
+
+          <article class="timeline__item reveal">
+            <span class="timeline__year">Разрушение Конохи</span>
+            <h3>Город в руинах</h3>
+            <p>Атака Пейна стёрла большую часть деревни. Медкорпус столкнулся с сотнями пострадавших одновременно. Призыв Кацую и слаженная работа медиков позволили спасти тех, кого ещё можно было спасти, — но цена оказалась высокой.</p>
+          </article>
+
+          <article class="timeline__item reveal">
+            <span class="timeline__year">Четвёртая мировая</span>
+            <h3>Объединённый медкорпус</h3>
+            <p>Впервые медики пяти великих наций работали вместе. Появились единые протоколы, полевые госпитали и распределение раненых по тяжести. Сакура, Шизуне и Кацую стали символами этой войны — войны, где победу измеряли спасёнными жизнями.</p>
+          </article>
+
+          <article class="timeline__item reveal">
+            <span class="timeline__year">Мирное время</span>
+            <h3>Медицина после войны</h3>
+            <p>Госпиталь Конохи пережил реконструкцию и новое поколение врачей. Сакура Харуно заняла место ведущего специалиста, а знания медкорпуса постепенно вышли за пределы деревни — вместе с миром, который стал чуть менее жестоким.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__head reveal">
+          <span class="eyebrow">Доктрина</span>
+          <h2>Три принципа, приписываемые Цунаде</h2>
+          <p class="lead">Формулировки в разных источниках отличаются, но суть одна: медик — это не боец, а гарантия того, что бойцы вернутся домой.</p>
+        </div>
+
+        <div class="grid">
+          <article class="card reveal">
+            <div class="kanji">一</div>
+            <h3>Не стоять на передовой</h3>
+            <p>Медик не ищет дуэлей. Его место — за спинами товарищей, там, где можно быстро начать лечение. Гибель медика стоит жизни всей команде.</p>
+          </article>
+          <article class="card reveal">
+            <div class="kanji kanji--gold">二</div>
+            <h3>Быть в каждой команде</h3>
+            <p>Отряд без медика — это отряд, который теряет бойцов из-за того, что можно было исправить за минуту. Поэтому медиков распределяют заранее, а не «по факту».</p>
+          </article>
+          <article class="card reveal">
+            <div class="kanji kanji--green">三</div>
+            <h3>Сначала стабилизировать</h3>
+            <p>Красивое лечение бесполезно, если пациент умер по дороге. Остановить кровь, снять шок, выиграть время — и только потом сложная техника.</p>
+          </article>
+        </div>
+
+        <div class="callout callout--warn" style="margin-top:26px">
+          <strong>Важно:</strong> это учебная реконструкция. В каноне правила медика сформулированы короче и жёстче; здесь они развёрнуты для понятности и дополнены полевыми протоколами.
+        </div>
+      </section>
+
+      <section class="section section--tight" style="padding-bottom:60px">
+        <div class="grid grid--2">
+          <div class="reveal">
+            <span class="eyebrow">Итог</span>
+            <h2>Что изменилось навсегда</h2>
+            <ul class="checklist" style="margin-top:20px">
+              <li>Медицина стала профессией с обучением и экзаменами, а не личным талантом.</li>
+              <li>Появились правила, защищающие и медика, и пациента.</li>
+              <li>Война получила тыл: эвакуацию, госпитали и распределение раненых.</li>
+              <li>Появились запретные направления — и вместе с ними ответственность за них.</li>
+            </ul>
+          </div>
+          <div class="reveal">
+            <figure class="quote">
+              <blockquote>Сильный лечит себя. Мудрый лечит отряд. Великий — учит лечить других.</blockquote>
+              <figcaption>Из учебных записок медкорпуса (реконструкция)</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+            <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+            <span class="logo-text">
+              <span class="logo-title">Медкорпус</span>
+              <span class="logo-sub">木ノ葉医療班</span>
+            </span>
+          </a>
+          <p class="footer-about">Учебный справочник по медицинским практикам мира Наруто: техники, яды, устав и полевые протоколы.</p>
+        </div>
+        <div>
+          <h4>Разделы</h4>
+          <ul class="footer-links">
+            <li><a href="istoriya.html">История медицины</a></li>
+            <li><a href="tehniki.html">Техники</a></li>
+            <li><a href="mediki.html">Медики</a></li>
+            <li><a href="apteka.html">Аптека</a></li>
+            <li><a href="reglament.html">Устав</a></li>
+            <li><a href="quiz.html">Аттестация</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>О проекте</h4>
+          <p class="footer-note">Фан-проект по вселенной «Наруто» Масаси Кисимото. Часть формулировок и разделов — учебная реконструкция, а не дословный канон. Вся медицина здесь вымышленная и не является медицинской рекомендацией.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> Медкорпус Конохи · 木ノ葉医療班</span>
+        <span>Статический сайт для GitHub Pages</span>
+      </div>
+    </div>
+  </footer>
+
+  <button class="to-top" id="toTop" type="button" aria-label="Наверх">↑</button>
+  <script src="js/store.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
