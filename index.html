@@ -29,20 +29,18 @@
       <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
         <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
         <span class="logo-text">
-          <span class="logo-title">Медкорпус</span>
+          <span class="logo-title">Медкорпус Конохи</span>
           <span class="logo-sub">木ノ葉医療班</span>
         </span>
       </a>
 
       <nav class="nav" id="nav" aria-label="Основная навигация">
         <a href="index.html">Главная</a>
+        <a href="index.html#leadership">Руководство</a>
         <a href="index.html#sostav">Состав</a>
-        <a href="istoriya.html">История</a>
         <a href="tehniki.html">Техники</a>
-        <a href="mediki.html">Медики</a>
-        <a href="apteka.html">Аптека</a>
-        <a href="reglament.html">Устав</a>
-        <a href="quiz.html">Аттестация</a>
+        <a href="reglament.html">Регламенты</a>
+        <a href="lekcii.html">Лекции</a>
       </nav>
 
       <div class="header-actions">
@@ -66,19 +64,36 @@
 
   <main id="main">
     <!-- Состав -->
-    <section class="section roster" id="sostav" aria-labelledby="sostavTitle">
+    <section class="roster" id="sostav" aria-labelledby="sostavTitle">
       <div class="container">
         <div class="roster__head reveal">
-          <span class="eyebrow">Состав</span>
-          <h2 class="roster__title roster__title--lead" id="sostavTitle">Руководство</h2>
-          <p class="lead">Глава Медицинского Корпуса и Заместитель Главы. Нажмите на карточку, чтобы открыть фото, имя, ранг, должности, клан, статус, выговоры и Discord.</p>
+          <span class="eyebrow">Состав медкорпуса</span>
+          <h1 class="roster__title roster__title--lead" id="sostavTitle">Медкорпус Конохи</h1>
+          <p class="lead">Глава и заместитель медицинского корпуса, а также основной состав. Нажмите на карточку или строку, чтобы открыть фото, ранг, должности, клан, статус, выговоры и Discord.</p>
         </div>
 
-        <div class="roster-lead" id="rosterLead"></div>
+        <div class="roster-block reveal" id="leadership">
+          <div class="roster-block__head">
+            <h2 class="roster__title">Руководство</h2>
+          </div>
+          <div class="roster-lead" id="rosterLead"></div>
+        </div>
 
-        <h3 class="roster__title">Основной состав</h3>
-        <div class="roster-list" id="rosterList"></div>
-        <p class="roster-empty" id="rosterEmpty" hidden>Основной состав пока пуст.</p>
+        <div class="roster-block reveal" id="osnovnoy-sostav">
+          <div class="roster-block__head">
+            <h2 class="roster__title">Основной состав</h2>
+            <span class="roster-count" id="rosterCount"></span>
+          </div>
+          <div class="roster-table">
+            <div class="roster-table__head" aria-hidden="true">
+              <span>Имя</span>
+              <span>Должность</span>
+              <span>Статус</span>
+            </div>
+            <div class="roster-list" id="rosterList"></div>
+          </div>
+          <p class="roster-empty" id="rosterEmpty" hidden>Основной состав пока пуст.</p>
+        </div>
 
         <div class="section__foot">
           <a class="btn btn--ghost btn--small" href="login.html">Войти в аккаунт</a>
@@ -92,7 +107,7 @@
         <div class="hero__text">
           <span class="badge"><span class="badge__dot"></span> Медкорпус Конохи · открытый архив</span>
           <p class="hero__jp">医療忍術 · 木ノ葉医療班</p>
-          <h1>Медицина мира <span class="grad">Наруто</span></h1>
+          <h2>Медицина мира <span class="grad">Наруто</span></h2>
           <p class="lead">Как в мире шиноби спасают жизни: ирьё-ниндзюцу, госпиталь Конохи, токсикология, проклятые печати и полевые госпитали Четвёртой мировой войны. Справочник для тех, кто хочет разобраться в каноне — и увидеть, как из фантастики собирается настоящая система здравоохранения.</p>
           <div class="hero__actions">
             <a class="btn btn--primary" href="tehniki.html">
@@ -280,7 +295,7 @@
           <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
             <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
             <span class="logo-text">
-              <span class="logo-title">Медкорпус</span>
+              <span class="logo-title">Медкорпус Конохи</span>
               <span class="logo-sub">木ノ葉医療班</span>
             </span>
           </a>
