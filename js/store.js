@@ -257,16 +257,7 @@
         if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.reports)) {
           var changed = false;
           parsed.users = parsed.users.map(function (u) {
-            var fixed = baseUser(u);
-            if (u.id === "u1" && fixed.positions.indexOf("Глава Медицинского Корпуса") === -1) {
-              fixed.positions.unshift("Глава Медицинского Корпуса");
-              changed = true;
-            }
-            if (u.id === "u2" && fixed.positions.indexOf("Заместитель Главы") === -1) {
-              fixed.positions.unshift("Заместитель Главы");
-              changed = true;
-            }
-            return fixed;
+            return baseUser(u);
           });
           if (parsed.version !== DB_VERSION) changed = true;
           parsed.version = DB_VERSION;
@@ -349,6 +340,22 @@
     if (!found) throw new Error("Пользователь не найден.");
     save(db);
     return found;
+  }
+
+  function deleteUser(id) {
+    var db = getDB();
+    var target = db.users.filter(function (u) { return u.id === id; })[0];
+    if (!target) throw new Error("Пользователь не найден.");
+    if (target.role === "developer") throw new Error("Аккаунт разработчика удалить нельзя.");
+
+    var session = null;
+    try { session = localStorage.getItem(SESSION_KEY); } catch (e) { session = null; }
+    if (session === id) throw new Error("Нельзя удалить аккаунт, под которым вы вошли.");
+
+    db.users = db.users.filter(function (u) { return u.id !== id; });
+    db.reports = db.reports.filter(function (r) { return r.userId !== id; });
+    save(db);
+    return target;
   }
 
   function reports() {
@@ -462,6 +469,7 @@
     userByEmail: userByEmail,
     createUser: createUser,
     updateUser: updateUser,
+    deleteUser: deleteUser,
     reports: reports,
     addReport: addReport,
     updateReport: updateReport,
