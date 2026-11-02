@@ -104,7 +104,10 @@
       "</div>" +
       '<div class="admin-user__actions">' +
         '<button class="btn btn--ghost btn--small" type="button" data-edit="' + esc(person.id) + '">Редактировать</button>' +
-        (isDev ? "" : '<a class="btn btn--ghost btn--small" href="index.html#sostav">В составе</a>') +
+        (isDev
+          ? ""
+          : '<a class="btn btn--ghost btn--small" href="index.html#sostav">В составе</a>' +
+            '<button class="btn btn--ghost btn--small btn--danger" type="button" data-user-delete="' + esc(person.id) + '">Удалить</button>') +
       "</div>" +
     "</article>";
   }
@@ -262,6 +265,21 @@
       return;
     }
 
+    var deleteUser = event.target.closest("[data-user-delete]");
+    if (deleteUser) {
+      var target = MCStore.userById(deleteUser.dataset.userDelete);
+      if (!target) return;
+      if (!window.confirm("Удалить аккаунт «" + MCStore.displayName(target) + "»? Действие нельзя отменить. Рапорта участника тоже будут удалены.")) return;
+      try {
+        MCStore.deleteUser(target.id);
+        MCAuth.toast("Аккаунт удалён", "ok");
+        refresh();
+      } catch (error) {
+        MCAuth.toast(error.message || "Не удалось удалить аккаунт.", "error");
+      }
+      return;
+    }
+
     var statusButton = event.target.closest("[data-report-status]");
     if (statusButton) {
       MCStore.updateReport(statusButton.dataset.report, { status: statusButton.dataset.reportStatus });
@@ -386,7 +404,7 @@
     '<section class="admin-section" style="margin-top:22px">' +
       '<div class="panel">' +
         '<div class="panel__head">' +
-          "<div><h2>Пользователи</h2><p>Должности, ранг, клан, статус и выговоры. Должностей можно выдать сколько угодно.</p></div>" +
+          "<div><h2>Пользователи</h2><p>Должности, ранг, клан, статус, выговоры, редактирование и удаление аккаунтов. Должностей можно выдать сколько угодно.</p></div>" +
         "</div>" +
         '<div class="admin-users" id="adminUsers"></div>' +
       "</div>" +
