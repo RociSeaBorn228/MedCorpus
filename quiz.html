@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Аттестация — Медкорпус Конохи</title>
+  <meta name="description" content="Пройдите аттестацию медкорпуса Конохи: восемь вопросов о техниках, ядах, правилах и людях медицины мира Наруто.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    document.documentElement.classList.add("js");
+    try { var t = localStorage.getItem("medcorpus-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержанию</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+        <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+        <span class="logo-text">
+          <span class="logo-title">Медкорпус</span>
+          <span class="logo-sub">木ノ葉医療班</span>
+        </span>
+      </a>
+      <nav class="nav" id="nav" aria-label="Основная навигация">
+        <a href="index.html">Главная</a>
+        <a href="index.html#sostav">Состав</a>
+        <a href="istoriya.html">История</a>
+        <a href="tehniki.html">Техники</a>
+        <a href="mediki.html">Медики</a>
+        <a href="apteka.html">Аптека</a>
+        <a href="reglament.html">Устав</a>
+        <a href="quiz.html">Аттестация</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Включить светлую тему" aria-pressed="false">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"></path></svg>
+        </button>
+        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+      <div class="page-head">
+        <p class="breadcrumb"><a href="index.html">Главная</a>
+        <span>/</span>Аттестация</p>
+        <h1>Проверка <span class="grad">квалификации</span></h1>
+        <p class="lead">Восемь вопросов без подсказок. Техники, яды, правила и люди — всё, что должен знать медик перед первым выходом. Отвечайте честно: это не экзамен на должность, а способ понять, что перечитать.</p>
+      </div>
+
+      <section class="section section--tight">
+        <form class="quiz" id="quizForm">
+          <fieldset class="q" data-correct="a">
+            <legend>1. Кто создал систему медицинских ниндзя в Конохе?</legend>
+            <label><input type="radio" name="q1" value="a" required> Цунаде Сенджу</label>
+            <label><input type="radio" name="q1" value="b"> Сакура Харуно</label>
+            <label><input type="radio" name="q1" value="c"> Шизуне</label>
+            <label><input type="radio" name="q1" value="d"> Кабуто Якуши</label>
+          </fieldset>
+
+          <fieldset class="q" data-correct="b">
+            <legend>2. Какая техника позволяет оперировать, не вскрывая кожу?</legend>
+            <label><input type="radio" name="q2" value="a" required> Мистическая ладонь</label>
+            <label><input type="radio" name="q2" value="b"> Скальпель чакры</label>
+            <label><input type="radio" name="q2" value="c"> Печать ста сил</label>
+            <label><input type="radio" name="q2" value="d"> Призыв Кацую</label>
+          </fieldset>
+
+          <fieldset class="q" data-correct="c">
+            <legend>3. Кто создал противоядие к яду Сасори?</legend>
+            <label><input type="radio" name="q3" value="a" required> Шизуне</label>
+            <label><input type="radio" name="q3" value="b"> Цунаде</label>
+            <label><input type="radio" name="q3" value="c"> Сакура</label>
+            <label><input type="radio" name="q3" value="d"> Ино</label>
+          </fieldset>
+
+          <fieldset class="q" data-correct="b">
+            <legend>4. Что накапливает Печать ста сил?</legend>
+            <label><input type="radio" name="q4" value="a" required> Яд</label>
+            <label><input type="radio" name="q4" value="b"> Чакру</label>
+            <label><input type="radio" name="q4" value="c"> Кровь</label>
+            <label><input type="radio" name="q4" value="d"> Воспоминания</label>
+          </fieldset>
+
+          <fieldset class="q" data-correct="c">
+            <legend>5. Кто призывает Кацую?</legend>
+            <label><input type="radio" name="q5" value="a" required> Орочимару</label>
+            <label><input type="radio" name="q5" value="b"> Кабуто</label>
+            <label><input type="radio" name="q5" value="c"> Цунаде и Сакура</label>
+            <label><input type="radio" name="q5" value="d"> Карин</label>
+          </fieldset>
+
+          <fieldset class="q" data-correct="b">
+            <legend>6. Главное правило медика на войне?</legend>
+            <label><input type="radio" name="q6" value="a" required> Атаковать первым</label>
+            <label><input type="radio" name="q6" value="b"> Не сражаться на передовой</label>
+            <label><input type="radio" name="q6" value="c"> Лечить только союзников</label>
+            <label><input type="radio" name="q6" value="d"> Игнорировать приказы</label>
+          </fieldset>
+
+          <fieldset class="q" data-correct="b">
+            <legend>7. Чей укус исцеляет раны?</legend>
+            <label><input type="radio" name="q7" value="a" required> Ино Яманака</label>
+            <label><input type="radio" name="q7" value="b"> Карин Узумаки</label>
+            <label><input type="radio" name="q7" value="c"> Шизуне</label>
+            <label><input type="radio" name="q7" value="d"> Рин Нохара</label>
+          </fieldset>
+
+          <fieldset class="q" data-correct="c">
+            <legend>8. Как называется групповая техника реанимации?</legend>
+            <label><input type="radio" name="q8" value="a" required> Сёсэн-дзюцу</label>
+            <label><input type="radio" name="q8" value="b"> Бякуго-но ин</label>
+            <label><input type="radio" name="q8" value="c"> Чикацу-сайсэй-но-дзюцу</label>
+            <label><input type="radio" name="q8" value="d"> Содзо-сайсэй</label>
+          </fieldset>
+
+          <div class="quiz__actions">
+            <button class="btn btn--primary" type="submit">Проверить ответы</button>
+            <button class="btn btn--ghost" type="button" id="quizRestart">Сбросить</button>
+          </div>
+        </form>
+
+        <div class="result" id="quizResult" hidden aria-live="polite">
+          <span class="eyebrow">Результат</span>
+          <div class="result__score" id="quizScore">0 / 8</div>
+          <p class="result__title" id="quizTitle"></p>
+          <p id="quizMessage"></p>
+          <div class="quiz__actions">
+            <a class="btn btn--primary" href="tehniki.html">Повторить техники</a>
+            <a class="btn btn--ghost" href="apteka.html">Открыть аптеку</a>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:26px">
+          <strong>Как считается результат.</strong> Один правильный ответ — один балл. После проверки зелёным отмечен верный вариант, красным — выбранный ошибочный. Страница не отправляет данные: всё считается прямо в браузере.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html" aria-label="Медкорпус Конохи — на главную">
+            <img class="logo-mark" src="images/emblem.svg" alt="" width="40" height="40">
+            <span class="logo-text">
+              <span class="logo-title">Медкорпус</span>
+              <span class="logo-sub">木ノ葉医療班</span>
+            </span>
+          </a>
+          <p class="footer-about">Учебный справочник по медицинским практикам мира Наруто: техники, яды, устав и полевые протоколы.</p>
+        </div>
+        <div>
+          <h4>Разделы</h4>
+          <ul class="footer-links">
+            <li><a href="istoriya.html">История медицины</a></li>
+            <li><a href="tehniki.html">Техники</a></li>
+            <li><a href="mediki.html">Медики</a></li>
+            <li><a href="apteka.html">Аптека</a></li>
+            <li><a href="reglament.html">Устав</a></li>
+            <li><a href="quiz.html">Аттестация</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>О проекте</h4>
+          <p class="footer-note">Фан-проект по вселенной «Наруто» Масаси Кисимото. Часть формулировок и разделов — учебная реконструкция, а не дословный канон. Вся медицина здесь вымышленная и не является медицинской рекомендацией.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> Медкорпус Конохи · 木ノ葉医療班</span>
+        <span>Статический сайт для GitHub Pages</span>
+      </div>
+    </div>
+  </footer>
+
+  <button class="to-top" id="toTop" type="button" aria-label="Наверх">↑</button>
+  <script src="js/store.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
