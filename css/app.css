@@ -159,6 +159,160 @@
   color: var(--text);
 }
 
+/* Пикер должностей */
+.position-picker { display: grid; gap: 15px; }
+.position-group { display: grid; gap: 8px; }
+.position-group__label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.check--position { position: relative; padding-left: 35px; }
+.check--position input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.check__mark {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  margin-top: -7.5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--panel-2);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.check--position:has(input:checked) .check__mark {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.check--position:has(input:checked) .check__mark::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--on-accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.check__star { color: var(--gold); font-size: 0.78rem; }
+.position-picker__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.position-picker__count {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  white-space: nowrap;
+}
+
+/* Редактор выговоров */
+.warning-editor { display: grid; gap: 10px; }
+.warning-editor__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.warning-editor__label { display: grid; gap: 2px; }
+.warning-editor__label b { font-size: 0.88rem; }
+.warning-editor__label span { font-size: 0.72rem; color: var(--muted); }
+.warning-editor__dots { display: flex; gap: 5px; }
+.warning-editor__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-2);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.warning-editor__dot.is-on {
+  border-color: rgba(224, 82, 82, 0.7);
+  background: #e05252;
+  box-shadow: 0 0 0 3px rgba(224, 82, 82, 0.12);
+}
+.warning-editor__control { display: inline-flex; align-items: center; gap: 8px; }
+.warn-step {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.warn-step:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-2); }
+.warn-step:disabled { opacity: 0.35; cursor: not-allowed; }
+.warning-editor__count {
+  min-width: 42px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+.warning-editor input[data-warn-box] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* Предпросмотр фото */
+.photo-preview {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.photo-preview img {
+  width: 100%;
+  max-width: 220px;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.photo-preview__text {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.photo-preview.is-ok { border-color: rgba(76, 175, 80, 0.45); }
+.photo-preview.is-error { border-color: rgba(224, 82, 82, 0.5); }
+.photo-preview.is-error .photo-preview__text { color: #ff9d9d; }
+[data-theme="light"] .photo-preview.is-error .photo-preview__text { color: #b42318; }
+.avatar--pending { color: var(--muted); }
+
+
 /* ---------- Вход и регистрация ---------- */
 .auth-layout {
   display: grid;
@@ -947,6 +1101,16 @@
 }
 
 @media (max-width: 560px) {
+  .warning-editor__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label control"
+      "dots control";
+    gap: 8px 12px;
+  }
+  .warning-editor__label { grid-area: label; }
+  .warning-editor__dots { grid-area: dots; }
+  .warning-editor__control { grid-area: control; }
   .user-chip__name { display: none; }
   .user-chip { padding-right: 8px; }
   .auth-tabs button { font-size: 0.82rem; padding: 8px 10px; }
