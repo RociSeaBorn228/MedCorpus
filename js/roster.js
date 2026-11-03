@@ -11,6 +11,20 @@
   var dialog = document.getElementById("memberDialog");
   var dialogBody = document.getElementById("memberDialogBody");
 
+  var TECH_SEATS = 10;
+  var techniqueBlocks = [
+    {
+      position: "Скальпель",
+      list: document.getElementById("scalpelList"),
+      count: document.getElementById("scalpelCount")
+    },
+    {
+      position: "Тайдзюцу",
+      list: document.getElementById("taijutsuList"),
+      count: document.getElementById("taijutsuCount")
+    }
+  ];
+
   if (!leadHost || !listHost || !window.MCStore || !window.MCAuth) return;
 
   var esc = MCAuth.esc;
@@ -24,6 +38,12 @@
     var active = user.status === "active";
     return '<span class="status ' + (active ? "status--active" : "status--inactive") + '">' +
       (active ? "Актив" : "Не актив") + "</span>";
+  }
+
+  function techStatusHTML(user) {
+    var active = user.status === "active";
+    return '<span class="status ' + (active ? "status--active" : "status--vacation") + '">' +
+      (active ? "Активен" : "В отпуске") + "</span>";
   }
 
   function positionsHTML(user) {
@@ -81,6 +101,55 @@
       "</button>";
   }
 
+  function techRow(user, position) {
+    var others = user.positions.filter(function (item) { return item !== position; });
+    var role = others.length
+      ? others.map(function (item) { return '<span class="tag tag--green">' + esc(item) + "</span>"; }).join("")
+      : '<span class="tag">' + esc(user.rank) + "</span>";
+
+    return '<button class="roster-row" type="button" data-user="' + esc(user.id) + '" aria-haspopup="dialog">' +
+      '<span class="roster-row__person">' +
+        MCAuth.avatar(user, "avatar--sm") +
+        "<span>" +
+          '<span class="roster-row__name">' + esc(MCStore.displayName(user)) + "</span>" +
+          '<span class="roster-row__rank">' + esc(user.clan) + "</span>" +
+        "</span>" +
+      "</span>" +
+      '<span class="roster-row__positions">' + role + "</span>" +
+      techStatusHTML(user) +
+      "</button>";
+  }
+
+  function vacantRow() {
+    return '<div class="roster-row roster-row--vacant" aria-hidden="true">' +
+      '<span class="roster-row__person">' +
+        '<span class="roster-row__name roster-row__name--vacant">Свободное место</span>' +
+      "</span>" +
+      '<span class="roster-row__positions"></span>' +
+      '<span class="status status--vacant">Вакансия</span>' +
+      "</div>";
+  }
+
+  function renderTechniques(all) {
+    techniqueBlocks.forEach(function (block) {
+      if (!block.list) return;
+
+      var members = all.filter(function (user) {
+        return user.positions.indexOf(block.position) !== -1;
+      });
+      var seats = Math.max(TECH_SEATS, members.length);
+
+      block.list.innerHTML = members.map(function (user) {
+        return techRow(user, block.position);
+      }).join("") + new Array(seats - members.length + 1).join(vacantRow());
+
+      if (block.count) {
+        block.count.textContent = members.length + " / " + seats + " мест";
+      }
+      MCAuth.bindAvatars(block.list);
+    });
+  }
+
   function render() {
     var all = MCStore.rosterUsers();
     var lead = all.filter(MCStore.isLead)[0] || null;
@@ -99,6 +168,7 @@
 
     MCAuth.bindAvatars(leadHost);
     MCAuth.bindAvatars(listHost);
+    renderTechniques(all);
   }
 
   /* ---------- Редактирование (только разработчик) ---------- */
