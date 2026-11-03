@@ -42,22 +42,21 @@
   var dialogTitle = document.getElementById("userDialogTitle");
   var saveButton = document.getElementById("userSave");
   var positionBox = document.getElementById("positionChecks");
+  var warningBox = document.getElementById("warningEditor");
+  var photoInput = document.getElementById("userPhoto");
+  var photoPreview = document.getElementById("userPhotoPreview");
 
-  /* ---------- Форма: чекбоксы должностей ---------- */
-  function buildPositions() {
+  /* ---------- Форма: должности и выговоры ---------- */
+  function renderPositions(selected) {
     if (!positionBox) return;
-    positionBox.innerHTML = MCStore.POSITIONS.map(function (position) {
-      var lead = MCStore.LEAD_POSITIONS.indexOf(position) !== -1;
-      return '<label class="check"><input type="checkbox" name="position" value="' + esc(position) + '">' +
-        esc(position) + (lead ? " ★" : "") + "</label>";
-    }).join("");
+    positionBox.innerHTML = MCAuth.positionsEditor(selected);
+    MCAuth.syncPositions(positionBox);
   }
 
-  function paintPositions(selected) {
-    if (!positionBox) return;
-    positionBox.querySelectorAll('input[name="position"]').forEach(function (input) {
-      input.checked = selected.indexOf(input.value) !== -1;
-    });
+  function renderWarnings(person) {
+    if (!warningBox) return;
+    warningBox.innerHTML = MCAuth.warningsEditor(person);
+    MCAuth.syncWarnings(warningBox);
   }
 
   function selectedPositions() {
@@ -65,6 +64,10 @@
       form.querySelectorAll('input[name="position"]:checked'),
       function (input) { return input.value; }
     );
+  }
+
+  function refreshPhotoPreview() {
+    if (photoInput) photoInput.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   /* ---------- Карточки пользователей ---------- */
@@ -217,23 +220,17 @@
       form.elements.clan.value = person.clan;
       form.elements.status.value = person.status;
 
-      var warnings = MCStore.normalizeWarnings(person.warnings);
-      warnings.oral.forEach(function (on, index) {
-        var box = form.elements["oral" + index];
-        if (box) box.checked = on;
-      });
-      warnings.written.forEach(function (on, index) {
-        var box = form.elements["written" + index];
-        if (box) box.checked = on;
-      });
-
-      paintPositions(person.positions);
+      renderPositions(person.positions);
+      renderWarnings(person);
     } else {
       form.elements.rank.value = "Интерн";
       form.elements.clan.value = "Нет клана";
       form.elements.status.value = "active";
-      paintPositions(["Интерн"]);
+      renderPositions(["Интерн"]);
+      renderWarnings(null);
     }
+
+    refreshPhotoPreview();
 
     if (typeof dialog.showModal === "function") {
       dialog.showModal();
@@ -337,7 +334,6 @@
         lastName: lastName,
         email: email,
         discord: el.discord.value.trim(),
-        photo: el.photo.value.trim(),
         positions: positions,
         rank: el.rank.value,
         clan: el.clan.value,
@@ -347,6 +343,17 @@
           written: [el.written0.checked, el.written1.checked]
         }
       };
+
+      var rawPhoto = el.photo.value.trim();
+      var photo = "";
+      if (rawPhoto) {
+        photo = await MCAuth.resolvePhotoUrl(rawPhoto);
+        if (!photo) {
+          showError("Не удалось найти изображение по ссылке. Укажите прямую ссылку на картинку или ссылку на пост/галерею Imgur.");
+          return;
+        }
+      }
+      payload.photo = photo;
 
       if (saveButton) saveButton.disabled = true;
 
@@ -382,7 +389,9 @@
   }
 
   /* ---------- Каркас страницы ---------- */
-  buildPositions();
+  MCAuth.bindPhotoPreview(photoInput, photoPreview);
+  renderPositions([]);
+  renderWarnings(null);
 
   root.innerHTML =
     '<div class="admin-stats">' +
