@@ -36,7 +36,7 @@
 
       <nav class="nav" id="nav" aria-label="Основная навигация">
         <a href="index.html">Главная</a>
-        <a href="index.html#sostav">Состав</a>
+        <a href="sostav.html">Состав</a>
         <a href="tehniki.html">Техники</a>
         <a href="reglament.html">Регламенты</a>
         <a href="lekcii.html">Лекции</a>
@@ -62,51 +62,13 @@
   </header>
 
   <main id="main">
-    <!-- Состав -->
-    <section class="roster" id="sostav" aria-labelledby="sostavTitle">
-      <div class="container">
-        <div class="roster__head reveal">
-          <span class="eyebrow">Состав медкорпуса</span>
-          <h1 class="roster__title roster__title--lead" id="sostavTitle">Медкорпус Конохи</h1>
-          <p class="lead">Глава и заместитель медицинского корпуса, а также основной состав. Нажмите на карточку или строку, чтобы открыть фото, ранг, должности, клан, статус, выговоры и Discord.</p>
-        </div>
-
-        <div class="roster-block reveal" id="leadership">
-          <div class="roster-block__head">
-            <h2 class="roster__title">Руководство</h2>
-          </div>
-          <div class="roster-lead" id="rosterLead"></div>
-        </div>
-
-        <div class="roster-block reveal" id="osnovnoy-sostav">
-          <div class="roster-block__head">
-            <h2 class="roster__title">Основной состав</h2>
-            <span class="roster-count" id="rosterCount"></span>
-          </div>
-          <div class="roster-table">
-            <div class="roster-table__head" aria-hidden="true">
-              <span>Имя</span>
-              <span>Должность</span>
-              <span>Статус</span>
-            </div>
-            <div class="roster-list" id="rosterList"></div>
-          </div>
-          <p class="roster-empty" id="rosterEmpty" hidden>Основной состав пока пуст.</p>
-        </div>
-
-        <div class="section__foot">
-          <a class="btn btn--ghost btn--small" href="login.html">Войти в аккаунт</a>
-        </div>
-      </div>
-    </section>
-
     <!-- Главный блок -->
     <section class="hero">
       <div class="hero__inner">
         <div class="hero__text">
           <span class="badge"><span class="badge__dot"></span> Медкорпус Конохи · открытый архив</span>
           <p class="hero__jp">医療忍術 · 木ノ葉医療班</p>
-          <h2>Медицина мира <span class="grad">Наруто</span></h2>
+          <h1>Медицина мира <span class="grad">Наруто</span></h1>
           <p class="lead">Как в мире шиноби спасают жизни: ирьё-ниндзюцу, госпиталь Конохи, токсикология, проклятые печати и полевые госпитали Четвёртой мировой войны. Справочник для тех, кто хочет разобраться в каноне — и увидеть, как из фантастики собирается настоящая система здравоохранения.</p>
           <div class="hero__actions">
             <a class="btn btn--primary" href="tehniki.html">
@@ -328,13 +290,8 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="Наверх">↑</button>
 
-  <dialog class="member-dialog" id="memberDialog" aria-labelledby="memberDialogTitle">
-    <div id="memberDialogBody"></div>
-  </dialog>
-
   <script src="js/store.js" defer></script>
   <script src="js/auth.js" defer></script>
-  <script src="js/roster.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>
