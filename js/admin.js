@@ -109,7 +109,7 @@
         '<button class="btn btn--ghost btn--small" type="button" data-edit="' + esc(person.id) + '">Редактировать</button>' +
         (isDev
           ? ""
-          : '<a class="btn btn--ghost btn--small" href="index.html#sostav">В составе</a>' +
+          : '<a class="btn btn--ghost btn--small" href="sostav.html">В составе</a>' +
             '<button class="btn btn--ghost btn--small btn--danger" type="button" data-user-delete="' + esc(person.id) + '">Удалить</button>') +
       "</div>" +
     "</article>";
@@ -403,11 +403,6 @@
     '<div class="admin-toolbar">' +
       '<button class="btn btn--primary btn--small" id="createUser" type="button">Создать пользователя</button>' +
       '<div class="search"><input id="adminSearch" type="search" placeholder="Поиск: имя, email, клан…" aria-label="Поиск пользователей"></div>' +
-    "</div>" +
-
-    '<div class="notice notice--warn">' +
-      "<strong>Демо-режим.</strong> Аккаунты и рапорта хранятся в localStorage конкретного браузера. " +
-      "Другие посетители сайта не увидят созданных вами пользователей, пока не появится серверная база." +
     "</div>" +
 
     '<section class="admin-section" style="margin-top:22px">' +
