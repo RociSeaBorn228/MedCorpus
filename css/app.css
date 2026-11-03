@@ -650,6 +650,31 @@
 }
 [data-theme="light"] .status--inactive { background: rgba(16, 40, 28, 0.04); }
 
+.status--vacation {
+  color: #e0b25a;
+  border-color: rgba(224, 178, 90, 0.4);
+  background: rgba(224, 178, 90, 0.12);
+}
+[data-theme="light"] .status--vacation { color: #8a6414; }
+
+.status--vacant {
+  color: var(--muted);
+  border-style: dashed;
+  border-color: var(--line-strong);
+  background: transparent;
+}
+.status--vacant::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.roster-row--vacant { cursor: default; }
+.roster-row--vacant:hover { background: transparent; }
+.roster-row__name--vacant {
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .warnings { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .warn {
   display: inline-flex;
