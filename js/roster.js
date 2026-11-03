@@ -96,6 +96,9 @@
     listHost.innerHTML = rest.map(row).join("");
     if (emptyHost) emptyHost.hidden = rest.length > 0;
     if (countHost) countHost.textContent = "Участников: " + rest.length;
+
+    MCAuth.bindAvatars(leadHost);
+    MCAuth.bindAvatars(listHost);
   }
 
   /* ---------- Редактирование (только разработчик) ---------- */
@@ -115,25 +118,6 @@
 
   function option(value, label, selected) {
     return '<option value="' + esc(value) + '"' + (value === selected ? " selected" : "") + ">" + esc(label) + "</option>";
-  }
-
-  function positionChecks(user) {
-    return MCStore.POSITIONS.map(function (position) {
-      var lead = MCStore.LEAD_POSITIONS.indexOf(position) !== -1;
-      return '<label class="check"><input type="checkbox" name="position" value="' + esc(position) + '"' +
-        (user.positions.indexOf(position) !== -1 ? " checked" : "") + ">" +
-        esc(position) + (lead ? " ★" : "") + "</label>";
-    }).join("");
-  }
-
-  function warningChecks(user, kind, count, label) {
-    var values = MCStore.normalizeWarnings(user.warnings)[kind];
-    var html = "";
-    for (var i = 0; i < count; i += 1) {
-      html += '<label class="check"><input type="checkbox" name="' + kind + i + '"' +
-        (values[i] ? " checked" : "") + "> " + esc(label) + " " + (i + 1) + "</label>";
-    }
-    return html;
   }
 
   function showDialog() {
@@ -226,20 +210,16 @@
             "</div>" +
             '<div class="field">' +
               '<span class="field__label">Должности</span>' +
-              '<div class="checks">' + positionChecks(user) + "</div>" +
-              '<p class="field__hint">★ — руководящая должность. С «Главой Медицинского Корпуса» участник автоматически попадает в «Руководство».</p>' +
+              MCAuth.positionsEditor(user.positions) +
             "</div>" +
             '<div class="field">' +
               '<span class="field__label">Выговоры</span>' +
-              '<div class="checks">' +
-                warningChecks(user, "oral", 3, "Устный") +
-                warningChecks(user, "written", 2, "Письменный") +
-              "</div>" +
-              '<p class="field__hint">Максимум: 3 устных и 2 письменных.</p>' +
+              MCAuth.warningsEditor(user) +
             "</div>" +
             '<div class="field"><label for="memberPhoto">Фото (URL)</label>' +
-              '<input id="memberPhoto" name="photo" type="text" value="' + esc(user.photo) + '" placeholder="https://…">' +
-              '<p class="field__hint">Необязательно. Только http(s)-ссылка или data:image. Без фото показывается монограмма.</p></div>' +
+              '<input id="memberPhoto" name="photo" type="text" value="' + esc(user.photo) + '" placeholder="https://imgur.com/… или https://…/photo.jpg">' +
+              '<p class="field__hint">Необязательно. Подходит прямая ссылка на картинку или ссылка на пост/галерею Imgur. Без фото показывается монограмма.</p>' +
+              '<div class="photo-preview" id="memberPhotoPreview" hidden></div></div>' +
             '<div class="member-form__actions">' +
               '<button class="btn btn--ghost btn--small" type="button" data-member-cancel>Отмена</button>' +
               '<button class="btn btn--primary btn--small" type="submit">Сохранить</button>' +
@@ -250,6 +230,12 @@
 
     showDialog();
     MCAuth.bindAvatars(dialogBody);
+    MCAuth.syncPositions(dialogBody);
+    MCAuth.syncWarnings(dialogBody);
+    MCAuth.bindPhotoPreview(
+      dialogBody.querySelector("#memberPhoto"),
+      dialogBody.querySelector("#memberPhotoPreview")
+    );
 
     setTimeout(function () {
       var first = dialogBody.querySelector("#memberFirstName");
@@ -301,7 +287,6 @@
         lastName: lastName,
         email: email,
         discord: el.discord.value.trim(),
-        photo: el.photo.value.trim(),
         positions: positions,
         rank: el.rank.value,
         clan: el.clan.value,
@@ -311,6 +296,17 @@
           written: [el.written0.checked, el.written1.checked]
         }
       };
+
+      var rawPhoto = el.photo.value.trim();
+      var photo = "";
+      if (rawPhoto) {
+        photo = await MCAuth.resolvePhotoUrl(rawPhoto);
+        if (!photo) {
+          fail("Не удалось найти изображение по ссылке. Укажите прямую ссылку на картинку или ссылку на пост/галерею Imgur.");
+          return;
+        }
+      }
+      payload.photo = photo;
 
       var save = form.querySelector('button[type="submit"]');
       if (save) save.disabled = true;
