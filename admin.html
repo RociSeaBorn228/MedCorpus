@@ -118,20 +118,12 @@
 
         <div class="field">
           <span class="field__label">Должности</span>
-          <div class="checks" id="positionChecks"></div>
-          <p class="field__hint">Можно выдать сразу несколько должностей. ★ — руководящая должность.</p>
+          <div id="positionChecks"></div>
         </div>
 
         <div class="field">
           <span class="field__label">Выговоры</span>
-          <div class="checks">
-            <label class="check"><input type="checkbox" name="oral0"> Устный 1</label>
-            <label class="check"><input type="checkbox" name="oral1"> Устный 2</label>
-            <label class="check"><input type="checkbox" name="oral2"> Устный 3</label>
-            <label class="check"><input type="checkbox" name="written0"> Письменный 1</label>
-            <label class="check"><input type="checkbox" name="written1"> Письменный 2</label>
-          </div>
-          <p class="field__hint">Максимум: 3 устных и 2 письменных.</p>
+          <div id="warningEditor"></div>
         </div>
 
         <div class="field-grid">
@@ -150,8 +142,9 @@
 
         <div class="field">
           <label for="userPhoto">Фото (URL)</label>
-          <input id="userPhoto" name="photo" type="url" placeholder="https://…">
-          <p class="field__hint">Необязательно. Только http(s)-ссылка или data:image. Без фото показывается монограмма.</p>
+          <input id="userPhoto" name="photo" type="text" placeholder="https://imgur.com/… или https://…/photo.jpg">
+          <p class="field__hint">Необязательно. Подходит прямая ссылка на картинку или ссылка на пост/галерею Imgur. Без фото показывается монограмма.</p>
+          <div class="photo-preview" id="userPhotoPreview" hidden></div>
         </div>
       </form>
     </div>
