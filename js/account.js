@@ -100,7 +100,7 @@
             : "") +
           '<div class="profile__actions">' +
             (isDev ? '<a class="btn btn--primary btn--small" href="admin.html">Панель разработчика</a>' : "") +
-            '<a class="btn btn--ghost btn--small" href="index.html#sostav">Состав корпуса</a>' +
+            '<a class="btn btn--ghost btn--small" href="sostav.html">Состав корпуса</a>' +
             '<button class="btn btn--ghost btn--small" type="button" data-logout>Выйти из аккаунта</button>' +
           "</div>" +
         "</aside>" +
@@ -128,16 +128,6 @@
                 : '<div class="empty-state">Вы ещё не отправляли рапортов. Первый рапорт появится здесь.</div>') +
             "</div>" +
           "</section>" +
-
-          (isDev
-            ? '<section class="panel">' +
-                '<div class="panel__head"><div><h2>Разработчик</h2>' +
-                "<p>Управление пользователями, должностями и рапортами.</p></div></div>" +
-                '<div class="notice"><strong>Демо-режим.</strong> Данные аккаунтов хранятся в localStorage этого браузера. ' +
-                "Для общего доступа нескольких людей нужен сервер (Supabase или Firebase).</div>" +
-                '<div style="margin-top:14px"><a class="btn btn--primary btn--small" href="admin.html">Открыть панель</a></div>' +
-              "</section>"
-            : "") +
         "</div>" +
       "</div>";
 
