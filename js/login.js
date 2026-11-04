@@ -10,10 +10,14 @@
   var tabRegister = document.getElementById("tabRegister");
   var loginForm = document.getElementById("loginForm");
   var registerForm = document.getElementById("registerForm");
+  var confirmForm = document.getElementById("confirmForm");
+  var confirmEmail = document.getElementById("confirmEmail");
+  var resendCode = document.getElementById("resendCode");
+  var changeEmail = document.getElementById("changeEmail");
   var panel = document.querySelector(".auth-panel");
 
   function setTab(mode) {
-    var isLogin = mode !== "register";
+    var isLogin = mode !== "register" && mode !== "confirm";
     if (tabLogin) {
       tabLogin.setAttribute("aria-selected", isLogin ? "true" : "false");
       tabLogin.tabIndex = isLogin ? 0 : -1;
@@ -23,11 +27,25 @@
       tabRegister.tabIndex = isLogin ? -1 : 0;
     }
     if (loginForm) loginForm.classList.toggle("is-active", isLogin);
-    if (registerForm) registerForm.classList.toggle("is-active", !isLogin);
-    var focusTarget = isLogin ? loginForm : registerForm;
+    if (registerForm) registerForm.classList.toggle("is-active", mode === "register");
+    if (confirmForm) confirmForm.classList.toggle("is-active", mode === "confirm");
+
+    var focusTarget = mode === "confirm" ? confirmForm : (isLogin ? loginForm : registerForm);
     if (focusTarget) {
       var first = focusTarget.querySelector("input");
       if (first) first.focus({ preventScroll: true });
+    }
+  }
+
+  function showConfirm(email) {
+    if (!confirmForm) return;
+    if (confirmEmail) confirmEmail.textContent = email;
+    showError(confirmForm, "");
+    setTab("confirm");
+    var input = confirmForm.elements.code;
+    if (input) {
+      input.value = "";
+      input.focus({ preventScroll: true });
     }
   }
 
@@ -71,6 +89,10 @@
     });
   }
 
+  if (!already && MCAuth.emailConfirmEnabled && MCAuth.pendingEmail && MCAuth.pendingEmail()) {
+    showConfirm(MCAuth.pendingEmail());
+  }
+
   if (loginForm) {
     loginForm.addEventListener("submit", async function (event) {
       event.preventDefault();
@@ -109,14 +131,67 @@
         password2: registerForm.elements.password2.value
       };
 
-      setBusy(registerForm, true, "Создаём…");
+      setBusy(registerForm, true, "Отправляем код…");
       try {
-        await MCAuth.register(data);
-        window.location.replace("account.html");
+        var result = await MCAuth.register(data);
+        setBusy(registerForm, false);
+        if (result && result.pending) {
+          showConfirm(result.email);
+          MCAuth.toast("Код отправлен на " + result.email, "ok");
+        } else {
+          window.location.replace(MCAuth.nextTarget());
+        }
       } catch (error) {
         showError(registerForm, error.message || "Не удалось создать аккаунт.");
         setBusy(registerForm, false);
       }
+    });
+  }
+
+  if (confirmForm) {
+    confirmForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      showError(confirmForm, "");
+
+      var code = confirmForm.elements.code.value.trim();
+      if (!/^\d{4,10}$/.test(code)) {
+        showError(confirmForm, "Введите код из письма (обычно 6 цифр).");
+        return;
+      }
+
+      setBusy(confirmForm, true, "Проверяем…");
+      try {
+        await MCAuth.confirmEmailRegistration(code);
+        window.location.replace(MCAuth.nextTarget());
+      } catch (error) {
+        showError(confirmForm, error.message || "Не удалось подтвердить почту.");
+        setBusy(confirmForm, false);
+      }
+    });
+  }
+
+  if (resendCode) {
+    resendCode.addEventListener("click", async function () {
+      if (!confirmForm) return;
+      showError(confirmForm, "");
+      resendCode.disabled = true;
+      var label = resendCode.textContent;
+      resendCode.textContent = "Отправляем…";
+      try {
+        var email = await MCAuth.resendEmailCode();
+        MCAuth.toast("Письмо отправлено повторно на " + email, "ok");
+      } catch (error) {
+        showError(confirmForm, error.message || "Не удалось отправить письмо.");
+      }
+      resendCode.disabled = false;
+      resendCode.textContent = label;
+    });
+  }
+
+  if (changeEmail) {
+    changeEmail.addEventListener("click", function () {
+      MCAuth.cancelEmailRegistration();
+      setTab("register");
     });
   }
 })();
