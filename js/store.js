@@ -259,12 +259,14 @@
 
   function persist(db) {
     db.version = DB_VERSION;
+    db.updatedAt = Date.now();
     try {
       localStorage.setItem(DB_KEY, JSON.stringify(db));
     } catch (e) {
       console.error("Не удалось сохранить данные", e);
     }
     emit(db);
+    queueCloudPush(db);
     return db;
   }
 
@@ -282,6 +284,7 @@
           });
           if (parsed.version !== DB_VERSION) changed = true;
           parsed.version = DB_VERSION;
+          parsed.updatedAt = Number(parsed.updatedAt) || 0;
           if (changed) {
             try { localStorage.setItem(DB_KEY, JSON.stringify(parsed)); } catch (e) { /* ignore */ }
           }
@@ -293,6 +296,7 @@
     }
 
     var fresh = seed();
+    fresh.updatedAt = 0;
     try { localStorage.setItem(DB_KEY, JSON.stringify(fresh)); } catch (e) { /* ignore */ }
     return fresh;
   }
@@ -481,6 +485,126 @@
       });
   }
 
+  /* ---------- Облачная синхронизация (Supabase) ---------- */
+  var CONFIG = window.MC_CONFIG || {};
+  var CLOUD_ON = !!(CONFIG.supabaseUrl && CONFIG.supabaseKey);
+  var CLOUD_TABLE = CONFIG.table || "medcorpus_state";
+  var CLOUD_ROW = CONFIG.rowId || "main";
+  var CLOUD_URL = CLOUD_ON
+    ? String(CONFIG.supabaseUrl).replace(/\/+$/, "") + "/rest/v1/" + CLOUD_TABLE
+    : "";
+  var CLOUD_POLL_MS = 15000;
+
+  var cloudTimer = null;
+  var cloudBusy = false;
+
+  function cloudHeaders() {
+    return {
+      "apikey": CONFIG.supabaseKey,
+      "Authorization": "Bearer " + CONFIG.supabaseKey,
+      "Content-Type": "application/json"
+    };
+  }
+
+  function readRaw() {
+    try {
+      var raw = localStorage.getItem(DB_KEY);
+      var parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.reports)) return parsed;
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  function cloudPull() {
+    return fetch(CLOUD_URL + "?id=eq." + encodeURIComponent(CLOUD_ROW) + "&select=data", {
+      headers: cloudHeaders(),
+      cache: "no-store"
+    }).then(function (res) {
+      if (!res.ok) throw new Error("Supabase pull: " + res.status);
+      return res.json();
+    }).then(function (rows) {
+      return rows && rows[0] ? rows[0].data : null;
+    });
+  }
+
+  function cloudPush(db) {
+    if (!CLOUD_ON || !db) return Promise.resolve(false);
+    return fetch(CLOUD_URL + "?on_conflict=id", {
+      method: "POST",
+      headers: Object.assign({}, cloudHeaders(), {
+        "Prefer": "resolution=merge-duplicates,return=minimal"
+      }),
+      body: JSON.stringify([{
+        id: CLOUD_ROW,
+        data: db,
+        updated_at: new Date().toISOString()
+      }])
+    }).then(function (res) {
+      if (!res.ok) throw new Error("Supabase push: " + res.status);
+      return true;
+    });
+  }
+
+  function queueCloudPush(db) {
+    if (!CLOUD_ON || !db) return;
+    if (cloudTimer) clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(function () {
+      cloudTimer = null;
+      cloudPush(db).catch(function (error) {
+        console.warn("Не удалось сохранить данные в облако:", error);
+      });
+    }, 600);
+  }
+
+  function applyRemote(remoteData) {
+    if (!remoteData || !Array.isArray(remoteData.users) || !Array.isArray(remoteData.reports)) return false;
+    var local = readRaw();
+    if (local && (local.updatedAt || 0) >= (remoteData.updatedAt || 0)) return false;
+
+    remoteData.version = DB_VERSION;
+    remoteData.updatedAt = Number(remoteData.updatedAt) || 0;
+    remoteData.users = remoteData.users.map(baseUser);
+    try { localStorage.setItem(DB_KEY, JSON.stringify(remoteData)); } catch (e) { /* ignore */ }
+    emit(remoteData);
+    return true;
+  }
+
+  function cloudTick() {
+    if (!CLOUD_ON || cloudBusy) return Promise.resolve();
+    cloudBusy = true;
+    return cloudPull().then(function (remote) {
+      var local = readRaw();
+      if (!remote) {
+        if (!local) return null;
+        if (!local.updatedAt) {
+          local.updatedAt = Date.now();
+          try { localStorage.setItem(DB_KEY, JSON.stringify(local)); } catch (e) { /* ignore */ }
+        }
+        return cloudPush(local);
+      }
+      if (local && (local.updatedAt || 0) > (remote.updatedAt || 0)) {
+        return cloudPush(local);
+      }
+      applyRemote(remote);
+      return null;
+    }).catch(function (error) {
+      console.warn("Синхронизация с облаком недоступна:", error);
+      return null;
+    }).then(function () {
+      cloudBusy = false;
+    });
+  }
+
+  function startCloud() {
+    if (!CLOUD_ON) return;
+    cloudTick();
+    setInterval(cloudTick, CLOUD_POLL_MS);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) cloudTick();
+    });
+    window.addEventListener("online", cloudTick);
+  }
+
   window.MCStore = {
     POSITIONS: POSITIONS,
     LEAD_POSITIONS: LEAD_POSITIONS,
@@ -512,6 +636,10 @@
     rankWeight: rankWeight,
     rosterUsers: rosterUsers,
     subscribe: subscribe,
-    uid: uid
+    uid: uid,
+    cloudEnabled: CLOUD_ON,
+    syncNow: cloudTick
   };
+
+  startCloud();
 })();
