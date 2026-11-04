@@ -90,7 +90,8 @@
       clan: CLANS.indexOf(data.clan) !== -1 ? data.clan : "Нет клана",
       status: STATUSES.indexOf(data.status) !== -1 ? data.status : "active",
       warnings: normalizeWarnings(data.warnings),
-      createdAt: data.createdAt || iso(0, 12)
+      createdAt: data.createdAt || iso(0, 12),
+      updatedAt: Number(data.updatedAt) || 0
     };
   }
 
@@ -278,24 +279,18 @@
       try {
         var parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.reports)) {
-          var changed = false;
-          parsed.users = parsed.users.map(function (u) {
-            return baseUser(u);
-          });
-          if (parsed.version !== DB_VERSION) changed = true;
-          parsed.version = DB_VERSION;
-          parsed.updatedAt = Number(parsed.updatedAt) || 0;
-          if (changed) {
-            try { localStorage.setItem(DB_KEY, JSON.stringify(parsed)); } catch (e) { /* ignore */ }
+          var normalized = normalizeDb(parsed);
+          if (canon(normalized) !== canon(parsed)) {
+            try { localStorage.setItem(DB_KEY, JSON.stringify(normalized)); } catch (e) { /* ignore */ }
           }
-          return parsed;
+          return normalized;
         }
       } catch (e) {
         console.warn("Повреждённые данные, создаю заново", e);
       }
     }
 
-    var fresh = seed();
+    var fresh = normalizeDb(seed());
     fresh.updatedAt = 0;
     try { localStorage.setItem(DB_KEY, JSON.stringify(fresh)); } catch (e) { /* ignore */ }
     return fresh;
@@ -349,6 +344,7 @@
       createdAt: iso(0, 12)
     });
     if (!user.firstName) throw new Error("Укажите имя.");
+    user.updatedAt = Date.now();
     db.users.push(user);
     save(db);
     return user;
@@ -363,6 +359,7 @@
       return found;
     });
     if (!found) throw new Error("Пользователь не найден.");
+    found.updatedAt = Date.now();
     save(db);
     return found;
   }
@@ -376,6 +373,13 @@
     var session = null;
     try { session = localStorage.getItem(SESSION_KEY); } catch (e) { session = null; }
     if (session === id) throw new Error("Нельзя удалить аккаунт, под которым вы вошли.");
+
+    var now = Date.now();
+    db.removed = db.removed || { users: {}, reports: {} };
+    db.removed.users[id] = now;
+    db.reports.forEach(function (r) {
+      if (r.userId === id) db.removed.reports[r.id] = now;
+    });
 
     db.users = db.users.filter(function (u) { return u.id !== id; });
     db.reports = db.reports.filter(function (r) { return r.userId !== id; });
@@ -397,7 +401,8 @@
       title: String(title || "").trim(),
       body: String(body || "").trim(),
       status: "new",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: Date.now()
     };
     if (!report.title || !report.body) throw new Error("Заполните заголовок и текст рапорта.");
     db.reports.push(report);
@@ -407,14 +412,17 @@
 
   function updateReport(id, patch) {
     var db = getDB();
+    var now = Date.now();
     db.reports = db.reports.map(function (r) {
-      return r.id === id ? Object.assign({}, r, patch) : r;
+      return r.id === id ? normalizeReport(Object.assign({}, r, patch, { updatedAt: now })) : r;
     });
     save(db);
   }
 
   function deleteReport(id) {
     var db = getDB();
+    db.removed = db.removed || { users: {}, reports: {} };
+    db.removed.reports[id] = Date.now();
     db.reports = db.reports.filter(function (r) { return r.id !== id; });
     save(db);
   }
@@ -515,6 +523,133 @@
     return null;
   }
 
+  /* ---------- Слияние состояний ----------
+     Каждый пользователь и рапорт хранит собственный updatedAt, а удаления
+     помечаются «надгробиями». Поэтому регистрация или правка из любого
+     браузера не пропадает, даже если другой браузер в этот момент
+     отправил своё состояние. */
+
+  function normalizeReport(data) {
+    var source = data || {};
+    return {
+      id: source.id,
+      userId: source.userId,
+      title: String(source.title || ""),
+      body: String(source.body || ""),
+      status: source.status || "new",
+      createdAt: source.createdAt || "",
+      updatedAt: Number(source.updatedAt) || 0
+    };
+  }
+
+  function normalizeTombs(input) {
+    var out = {};
+    if (!input || typeof input !== "object") return out;
+    Object.keys(input).forEach(function (id) {
+      var ts = Number(input[id]);
+      if (id && ts > 0) out[id] = ts;
+    });
+    return out;
+  }
+
+  function normalizeDb(data) {
+    var db = data && typeof data === "object" ? data : {};
+    var removed = db.removed && typeof db.removed === "object" ? db.removed : {};
+    return {
+      version: DB_VERSION,
+      epoch: Number(db.epoch) || 0,
+      updatedAt: Number(db.updatedAt) || 0,
+      users: Array.isArray(db.users) ? db.users.map(baseUser) : [],
+      reports: Array.isArray(db.reports) ? db.reports.map(normalizeReport) : [],
+      removed: {
+        users: normalizeTombs(removed.users),
+        reports: normalizeTombs(removed.reports)
+      }
+    };
+  }
+
+  /* Стабильная сериализация: одинаковые данные дают одинаковую строку. */
+  function canon(value) {
+    if (value === null || typeof value !== "object") return JSON.stringify(value);
+    if (Array.isArray(value)) return "[" + value.map(canon).join(",") + "]";
+    return "{" + Object.keys(value).sort().map(function (key) {
+      return JSON.stringify(key) + ":" + canon(value[key]);
+    }).join(",") + "}";
+  }
+
+  function mergeCollection(localItems, remoteItems, localTombs, remoteTombs) {
+    var locals = {};
+    var remotes = {};
+    var tombs = {};
+
+    (localItems || []).forEach(function (item) { if (item && item.id) locals[item.id] = item; });
+    (remoteItems || []).forEach(function (item) { if (item && item.id) remotes[item.id] = item; });
+
+    Object.keys(localTombs || {}).forEach(function (id) {
+      tombs[id] = Math.max(tombs[id] || 0, localTombs[id]);
+    });
+    Object.keys(remoteTombs || {}).forEach(function (id) {
+      tombs[id] = Math.max(tombs[id] || 0, remoteTombs[id]);
+    });
+
+    var ids = {};
+    Object.keys(locals).forEach(function (id) { ids[id] = true; });
+    Object.keys(remotes).forEach(function (id) { ids[id] = true; });
+
+    var items = [];
+    var localWins = false;
+
+    Object.keys(ids).forEach(function (id) {
+      var l = locals[id];
+      var r = remotes[id];
+      var lt = l ? Number(l.updatedAt) || 0 : 0;
+      var rt = r ? Number(r.updatedAt) || 0 : 0;
+      var t = tombs[id] || 0;
+
+      if (t && t >= lt && t >= rt) {
+        if (r) localWins = true; /* удаление ещё не дошло до облака */
+        return;
+      }
+
+      if (l && r) {
+        if (lt > rt) { items.push(l); localWins = true; }
+        else items.push(r);
+      } else if (l) {
+        items.push(l);
+        localWins = true;
+      } else if (r) {
+        items.push(r);
+      }
+    });
+
+    return { items: items, tombs: tombs, localWins: localWins };
+  }
+
+  function mergeDb(localData, remoteData) {
+    var local = normalizeDb(localData);
+    var remote = normalizeDb(remoteData);
+
+    var users = mergeCollection(local.users, remote.users, local.removed.users, remote.removed.users);
+    var reports = mergeCollection(local.reports, remote.reports, local.removed.reports, remote.removed.reports);
+
+    return {
+      state: {
+        version: DB_VERSION,
+        epoch: Math.max(local.epoch, remote.epoch),
+        updatedAt: Math.max(local.updatedAt, remote.updatedAt),
+        users: users.items,
+        reports: reports.items,
+        removed: { users: users.tombs, reports: reports.tombs }
+      },
+      localWins: users.localWins || reports.localWins
+    };
+  }
+
+  function adopt(db) {
+    try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { /* ignore */ }
+    emit(db);
+  }
+
   function cloudPull() {
     return fetch(CLOUD_URL + "?id=eq." + encodeURIComponent(CLOUD_ROW) + "&select=data", {
       headers: cloudHeaders(),
@@ -557,23 +692,46 @@
   }
 
   function applyRemote(remoteData) {
-    if (!remoteData || !Array.isArray(remoteData.users) || !Array.isArray(remoteData.reports)) return false;
-    var local = readRaw();
-    if (local && (local.updatedAt || 0) >= (remoteData.updatedAt || 0)) return false;
+    if (!remoteData || !Array.isArray(remoteData.users)) return false;
 
-    remoteData.version = DB_VERSION;
-    remoteData.updatedAt = Number(remoteData.updatedAt) || 0;
-    remoteData.users = remoteData.users.map(baseUser);
-    try { localStorage.setItem(DB_KEY, JSON.stringify(remoteData)); } catch (e) { /* ignore */ }
-    emit(remoteData);
-    return true;
+    var remote = normalizeDb(remoteData);
+    var local = readRaw();
+    if (!local) {
+      adopt(remote);
+      return true;
+    }
+
+    var localDb = normalizeDb(local);
+    var localEpoch = localDb.epoch || 0;
+    var remoteEpoch = remote.epoch || 0;
+
+    /* Публикация из другого браузера — принимаем её состояние целиком. */
+    if (remoteEpoch > localEpoch) {
+      adopt(remote);
+      return true;
+    }
+
+    /* Этот браузер опубликован позже — отправляем его состояние. */
+    if (localEpoch > remoteEpoch) {
+      queueCloudPush(localDb);
+      return false;
+    }
+
+    var merged = mergeDb(localDb, remote);
+    var changed = canon(merged.state) !== canon(localDb);
+
+    if (changed) adopt(merged.state);
+    if (canon(merged.state) !== canon(remote)) {
+      /* В этом браузере есть записи, которых нет в облаке: отправляем их. */
+      queueCloudPush(merged.state);
+    }
+    return changed;
   }
 
   function cloudTick() {
     if (!CLOUD_ON || cloudBusy) return Promise.resolve();
     cloudBusy = true;
     return cloudPull().then(function (remote) {
-      var local = readRaw();
       if (!remote) {
         /* В облаке ещё нет данных: ждём, пока разработчик опубликует
            состав из нужного браузера, и не затираем чужую работу. */
@@ -581,9 +739,6 @@
         return null;
       }
       notifyCloudState(true);
-      if (local && (local.updatedAt || 0) > (remote.updatedAt || 0)) {
-        return cloudPush(local);
-      }
       applyRemote(remote);
       return null;
     }).catch(function (error) {
@@ -601,18 +756,21 @@
     } catch (e) { /* ignore */ }
   }
 
-  /* Явная публикация данных этого браузера в общую базу. */
+  /* Явная публикация: состояние этого браузера становится общим. */
   function publishLocal() {
     if (!CLOUD_ON) return Promise.reject(new Error("Общая база не подключена."));
     if (cloudTimer) { clearTimeout(cloudTimer); cloudTimer = null; }
-    var db = getDB();
-    db.version = DB_VERSION;
-    db.updatedAt = Date.now();
-    try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { /* ignore */ }
-    emit(db);
-    return cloudPush(db).then(function () {
+
+    var local = normalizeDb(getDB());
+    return cloudPull().catch(function () { return null; }).then(function (remote) {
+      var remoteEpoch = remote ? Number(remote.epoch) || 0 : 0;
+      local.epoch = Math.max(Date.now(), remoteEpoch + 1, (local.epoch || 0) + 1);
+      local.updatedAt = Date.now();
+      adopt(local);
+      return cloudPush(local);
+    }).then(function () {
       notifyCloudState(true);
-      return db;
+      return normalizeDb(getDB());
     });
   }
 
@@ -621,13 +779,10 @@
     if (!CLOUD_ON) return Promise.reject(new Error("Общая база не подключена."));
     return cloudPull().then(function (remote) {
       if (!remote || !Array.isArray(remote.users)) throw new Error("В общей базе пока нет данных.");
-      remote.version = DB_VERSION;
-      remote.updatedAt = Number(remote.updatedAt) || 0;
-      remote.users = remote.users.map(baseUser);
-      try { localStorage.setItem(DB_KEY, JSON.stringify(remote)); } catch (e) { /* ignore */ }
-      emit(remote);
+      var adopted = normalizeDb(remote);
+      adopt(adopted);
       notifyCloudState(true);
-      return remote;
+      return adopted;
     });
   }
 
