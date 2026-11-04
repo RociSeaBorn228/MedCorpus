@@ -490,9 +490,9 @@
   var CLOUD_ON = !!(CONFIG.supabaseUrl && CONFIG.supabaseKey);
   var CLOUD_TABLE = CONFIG.table || "medcorpus_state";
   var CLOUD_ROW = CONFIG.rowId || "main";
-  var CLOUD_URL = CLOUD_ON
-    ? String(CONFIG.supabaseUrl).replace(/\/+$/, "") + "/rest/v1/" + CLOUD_TABLE
-    : "";
+  var CLOUD_BASE = String(CONFIG.supabaseUrl || "").replace(/\/+$/, "");
+  if (/\/rest\/v1$/.test(CLOUD_BASE)) CLOUD_BASE = CLOUD_BASE.replace(/\/rest\/v1$/, "");
+  var CLOUD_URL = CLOUD_ON ? CLOUD_BASE + "/rest/v1/" + CLOUD_TABLE : "";
   var CLOUD_POLL_MS = 15000;
 
   var cloudTimer = null;
@@ -575,23 +575,59 @@
     return cloudPull().then(function (remote) {
       var local = readRaw();
       if (!remote) {
-        if (!local) return null;
-        if (!local.updatedAt) {
-          local.updatedAt = Date.now();
-          try { localStorage.setItem(DB_KEY, JSON.stringify(local)); } catch (e) { /* ignore */ }
-        }
-        return cloudPush(local);
+        /* В облаке ещё нет данных: ждём, пока разработчик опубликует
+           состав из нужного браузера, и не затираем чужую работу. */
+        notifyCloudState(false);
+        return null;
       }
+      notifyCloudState(true);
       if (local && (local.updatedAt || 0) > (remote.updatedAt || 0)) {
         return cloudPush(local);
       }
       applyRemote(remote);
       return null;
     }).catch(function (error) {
+      notifyCloudState(null);
       console.warn("Синхронизация с облаком недоступна:", error);
       return null;
     }).then(function () {
       cloudBusy = false;
+    });
+  }
+
+  function notifyCloudState(hasData) {
+    try {
+      document.dispatchEvent(new CustomEvent("mccloud", { detail: { hasData: hasData } }));
+    } catch (e) { /* ignore */ }
+  }
+
+  /* Явная публикация данных этого браузера в общую базу. */
+  function publishLocal() {
+    if (!CLOUD_ON) return Promise.reject(new Error("Общая база не подключена."));
+    if (cloudTimer) { clearTimeout(cloudTimer); cloudTimer = null; }
+    var db = getDB();
+    db.version = DB_VERSION;
+    db.updatedAt = Date.now();
+    try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { /* ignore */ }
+    emit(db);
+    return cloudPush(db).then(function () {
+      notifyCloudState(true);
+      return db;
+    });
+  }
+
+  /* Явная загрузка данных из общей базы, даже если они «старше» локальных. */
+  function loadRemote() {
+    if (!CLOUD_ON) return Promise.reject(new Error("Общая база не подключена."));
+    return cloudPull().then(function (remote) {
+      if (!remote || !Array.isArray(remote.users)) throw new Error("В общей базе пока нет данных.");
+      remote.version = DB_VERSION;
+      remote.updatedAt = Number(remote.updatedAt) || 0;
+      remote.users = remote.users.map(baseUser);
+      try { localStorage.setItem(DB_KEY, JSON.stringify(remote)); } catch (e) { /* ignore */ }
+      emit(remote);
+      notifyCloudState(true);
+      return remote;
     });
   }
 
@@ -638,7 +674,9 @@
     subscribe: subscribe,
     uid: uid,
     cloudEnabled: CLOUD_ON,
-    syncNow: cloudTick
+    syncNow: cloudTick,
+    publishLocal: publishLocal,
+    loadRemote: loadRemote
   };
 
   startCloud();
