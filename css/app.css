@@ -456,6 +456,38 @@
 }
 .roster-count { font-size: 0.76rem; color: var(--muted); }
 
+.roster__title-btn {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+.roster__title-btn:hover { color: var(--accent-2); }
+.roster__title-hint {
+  padding: 2px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+.roster__title-btn:hover .roster__title-hint {
+  color: var(--accent-2);
+  border-color: rgba(76, 175, 80, 0.45);
+}
+
 .roster-lead {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -783,6 +815,53 @@
   color: var(--accent);
 }
 .member-card__body { padding: 0 24px 24px; display: grid; gap: 16px; }
+
+/* Карточка техники */
+.tech--clickable { cursor: pointer; }
+.tech--clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.tech-dialog { width: min(560px, calc(100% - 28px)); }
+.tech-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 24px 0;
+}
+.tech-card__head .kanji { flex: none; }
+.tech-card__head .icon-close { margin-left: auto; flex: none; }
+.tech-card__name {
+  margin: 6px 0 4px;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.tech-card__jp {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--accent-2);
+}
+.tech-card__body { padding: 16px 24px 22px; }
+.tech-card__desc {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.tech-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.tech-card__facts { margin-top: 0; }
+.tech-card__foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
 
 .member-facts {
   display: grid;
@@ -1144,6 +1223,8 @@
   .leader-card { padding: 18px; }
   .member-card__head { padding: 20px 18px 14px; gap: 14px; }
   .member-card__body { padding: 0 18px 20px; }
+  .tech-card__head { padding: 20px 18px 0; gap: 14px; }
+  .tech-card__body { padding: 14px 18px 18px; }
   .modal__body { padding: 18px; }
   .modal__head { padding: 16px 18px; }
   .modal__foot { padding: 14px 18px; }
