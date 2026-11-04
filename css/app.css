@@ -1084,6 +1084,29 @@
   color: var(--muted);
 }
 
+/* Общая база (Supabase) */
+.cloud-panel { display: grid; gap: 12px; }
+.cloud-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.cloud-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--muted);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+}
+.cloud-note--ok .cloud-dot { background: var(--accent-2); box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.16); }
+.cloud-note--wait .cloud-dot { background: #e0a020; box-shadow: 0 0 0 3px rgba(224, 160, 32, 0.16); }
+.cloud-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cloud-hint { margin: 0; font-size: 0.74rem; color: var(--muted); }
+
 .admin-toolbar {
   display: flex;
   flex-wrap: wrap;
