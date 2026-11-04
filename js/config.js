@@ -1,19 +1,18 @@
 /* ==========================================================================
    Медкорпус Конохи — настройки облачной синхронизации
    --------------------------------------------------------------------------
-   Чтобы состав и аккаунты стали общими для всех браузеров и устройств,
-   заполните два поля из вашего проекта Supabase:
+   Состав и аккаунты общие для всех браузеров и устройств через Supabase.
 
-     Supabase Dashboard → Project Settings → API
-       • Project URL        → supabaseUrl
-       • anon public key    → supabaseKey
+   Supabase Dashboard → Project Settings → API:
+     • Project URL      → supabaseUrl
+     • publishable key  → supabaseKey
 
-   anon key — публичный ключ, его можно хранить в коде сайта.
-   Перед первым запуском выполните SQL из файла supabase/schema.sql.
+   Ключ publishable публичный, его можно хранить в коде сайта.
+   Таблица создаётся скриптом supabase/schema.sql.
    ========================================================================== */
 window.MC_CONFIG = {
-  supabaseUrl: "",
-  supabaseKey: "",
+  supabaseUrl: "https://pbawnizilzyspphnelfu.supabase.co",
+  supabaseKey: "sb_publishable_nnqg2K6iTqS6yANsfkk_FA_YDsR61Ih",
   table: "medcorpus_state",
   rowId: "main"
 };
