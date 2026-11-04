@@ -115,7 +115,29 @@
                 </div>
               </div>
               <button class="btn btn--primary" type="submit">Создать аккаунт</button>
-              <p class="form-note">После регистрации вы получите должность «Интерн» и ранг «Интерн». Изменить их может разработчик корпуса.</p>
+              <p class="form-note">После регистрации вы получите должность «Интерн» и ранг «Интерн». Аккаунт появится в составе сразу после подтверждения почты — публиковать ничего не нужно.</p>
+            </form>
+
+            <form class="form" id="confirmForm" novalidate aria-labelledby="tabRegister">
+              <p class="form-error" hidden></p>
+              <div class="confirm-head">
+                <span class="confirm-head__icon" aria-hidden="true">✉</span>
+                <div>
+                  <p class="confirm-head__title">Подтвердите почту</p>
+                  <p class="confirm-head__text">Мы отправили код на <strong id="confirmEmail"></strong>. Введите его ниже — и аккаунт сразу появится в составе.</p>
+                </div>
+              </div>
+              <div class="field">
+                <label for="confirmCode">Код из письма</label>
+                <input id="confirmCode" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" required placeholder="123456">
+                <p class="field__hint">Обычно это 6 цифр. Если в письме только кнопка — нажмите её, аккаунт создастся автоматически.</p>
+              </div>
+              <button class="btn btn--primary" type="submit">Подтвердить и войти</button>
+              <div class="confirm-actions">
+                <button class="btn btn--ghost btn--small" type="button" id="resendCode">Отправить ещё раз</button>
+                <button class="btn btn--ghost btn--small" type="button" id="changeEmail">Изменить данные</button>
+              </div>
+              <p class="form-note">Письмо может прийти в «Спам». Отправитель — сервис Supabase Auth.</p>
             </form>
           </div>
 
