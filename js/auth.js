@@ -479,10 +479,14 @@
     });
   }
 
+  function siteFile(name) {
+    var folder = window.location.pathname.replace(/[^\/]*$/, "");
+    return folder + name;
+  }
+
   function authRedirectUrl() {
     if (!/^https?:$/.test(window.location.protocol)) return "";
-    var folder = window.location.pathname.replace(/[^\/]*$/, "");
-    return window.location.origin + folder + "login.html?confirmed=1";
+    return window.location.origin + siteFile("login.html") + "?confirmed=1";
   }
 
   function sendEmailCode(state) {
@@ -642,7 +646,7 @@
         clearPending();
         if (MCStore.pushNow) { try { await MCStore.pushNow(); } catch (e) { /* ignore */ } }
         toast("Почта подтверждена. Добро пожаловать!", "ok");
-        window.location.replace("account.html");
+        window.location.replace(siteFile("account.html"));
       } else {
         toast("Почта подтверждена. Войдите или зарегистрируйтесь ещё раз.", "ok");
       }
