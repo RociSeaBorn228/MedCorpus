@@ -94,7 +94,12 @@
 
         <div class="roster-block reveal" id="skalpel-sostav">
           <div class="roster-block__head">
-            <h2 class="roster__title">Владельцы техники Скальпеля</h2>
+            <h2 class="roster__title">
+              <button class="roster__title-btn" type="button" data-technique="Скальпель">
+                Владельцы техники Скальпеля
+                <span class="roster__title-hint">о технике</span>
+              </button>
+            </h2>
             <span class="roster-count" id="scalpelCount"></span>
           </div>
           <div class="roster-table">
@@ -109,7 +114,12 @@
 
         <div class="roster-block reveal" id="taydzutsu-sostav">
           <div class="roster-block__head">
-            <h2 class="roster__title">Владеющие медицинским Тайдзюцу</h2>
+            <h2 class="roster__title">
+              <button class="roster__title-btn" type="button" data-technique="Тайдзюцу">
+                Владеющие медицинским Тайдзюцу
+                <span class="roster__title-hint">о технике</span>
+              </button>
+            </h2>
             <span class="roster-count" id="taijutsuCount"></span>
           </div>
           <div class="roster-table">
@@ -173,6 +183,7 @@
 
   <script src="js/store.js" defer></script>
   <script src="js/auth.js" defer></script>
+  <script src="js/techniques.js" defer></script>
   <script src="js/roster.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
