@@ -209,7 +209,7 @@
         '<button class="btn btn--primary btn--small" type="button" data-cloud="publish">Опубликовать данные этого браузера</button>' +
         '<button class="btn btn--ghost btn--small" type="button" data-cloud="pull">Загрузить из общей базы</button>' +
       '</div>' +
-      '<p class="cloud-hint">«Опубликовать» заменяет общие данные тем, что сейчас в этом браузере. «Загрузить» заменяет данные этого браузера общими.</p>';
+      '<p class="cloud-hint">«Опубликовать» делает данные этого браузера общими для всех. «Загрузить» заменяет данные этого браузера общими.</p>';
   }
 
   document.addEventListener("mccloud", function (event) {
