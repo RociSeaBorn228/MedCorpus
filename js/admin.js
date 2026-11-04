@@ -183,6 +183,65 @@
       : '<div class="empty-state">Рапортов пока нет.</div>';
   }
 
+  /* ---------- Общая база ---------- */
+  var cloudHasData = null;
+
+  function renderCloudPanel() {
+    var host = document.getElementById("cloudPanel");
+    if (!host) return;
+
+    if (!MCStore.cloudEnabled) {
+      host.innerHTML = '<p class="cloud-note">Общая база не подключена.</p>';
+      return;
+    }
+
+    var status;
+    if (cloudHasData === true) {
+      status = '<p class="cloud-note cloud-note--ok"><span class="cloud-dot"></span>Подключено. Изменения появляются у всех посетителей автоматически.</p>';
+    } else if (cloudHasData === false) {
+      status = '<p class="cloud-note cloud-note--wait"><span class="cloud-dot"></span>В общей базе пока нет данных. Опубликуйте состав из того браузера, где он заполнен правильно.</p>';
+    } else {
+      status = '<p class="cloud-note"><span class="cloud-dot"></span>Проверяем связь с общей базой…</p>';
+    }
+
+    host.innerHTML = status +
+      '<div class="cloud-actions">' +
+        '<button class="btn btn--primary btn--small" type="button" data-cloud="publish">Опубликовать данные этого браузера</button>' +
+        '<button class="btn btn--ghost btn--small" type="button" data-cloud="pull">Загрузить из общей базы</button>' +
+      '</div>' +
+      '<p class="cloud-hint">«Опубликовать» заменяет общие данные тем, что сейчас в этом браузере. «Загрузить» заменяет данные этого браузера общими.</p>';
+  }
+
+  document.addEventListener("mccloud", function (event) {
+    cloudHasData = event.detail ? event.detail.hasData : null;
+    renderCloudPanel();
+  });
+
+  document.addEventListener("click", async function (event) {
+    var button = event.target.closest("[data-cloud]");
+    if (!button) return;
+    var action = button.getAttribute("data-cloud");
+    if (action === "publish" && !confirm("Опубликовать данные этого браузера в общую базу? Они станут общими для всех устройств.")) return;
+    if (action === "pull" && !confirm("Загрузить данные из общей базы? Данные этого браузера будут заменены.")) return;
+
+    button.disabled = true;
+    try {
+      if (action === "publish") {
+        await MCStore.publishLocal();
+        MCAuth.toast("Данные опубликованы в общую базу", "ok");
+      } else {
+        await MCStore.loadRemote();
+        MCAuth.toast("Данные загружены из общей базы", "ok");
+      }
+      refresh();
+      renderCloudPanel();
+    } catch (error) {
+      MCAuth.toast(error.message || "Не удалось выполнить действие", "err");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
   function refresh() {
     updateStats();
     renderUsers();
@@ -408,6 +467,15 @@
     '<section class="admin-section" style="margin-top:22px">' +
       '<div class="panel">' +
         '<div class="panel__head">' +
+          "<div><h2>Общая база</h2><p>Состав, аккаунты, должности и выговоры хранятся в Supabase и одинаковы во всех браузерах и на всех устройствах.</p></div>" +
+        "</div>" +
+        '<div class="cloud-panel" id="cloudPanel"></div>' +
+      "</div>" +
+    "</section>" +
+
+    '<section class="admin-section" style="margin-top:22px">' +
+      '<div class="panel">' +
+        '<div class="panel__head">' +
           "<div><h2>Пользователи</h2><p>Должности, ранг, клан, статус, выговоры, редактирование и удаление аккаунтов. Должностей можно выдать сколько угодно.</p></div>" +
         "</div>" +
         '<div class="admin-users" id="adminUsers"></div>' +
@@ -424,4 +492,6 @@
     "</section>";
 
   refresh();
+  renderCloudPanel();
+  if (MCStore.cloudEnabled) MCStore.syncNow();
 })();
