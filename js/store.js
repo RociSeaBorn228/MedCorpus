@@ -52,7 +52,28 @@
     };
   }
 
+  function normalizePosition(value) {
+    return String(value == null ? "" : value).trim().toLowerCase();
+  }
+
+  function canonicalPosition(value) {
+    var needle = normalizePosition(value);
+    for (var i = 0; i < POSITIONS.length; i += 1) {
+      if (normalizePosition(POSITIONS[i]) === needle) return POSITIONS[i];
+    }
+    return "";
+  }
+
+  function hasPosition(user, position) {
+    var needle = normalizePosition(position);
+    if (!user || !Array.isArray(user.positions)) return false;
+    return user.positions.some(function (item) {
+      return normalizePosition(item) === needle;
+    });
+  }
+
   function baseUser(data) {
+    var rank = String(data.rank || "").trim();
     return {
       id: data.id,
       email: String(data.email || "").trim().toLowerCase(),
@@ -62,10 +83,10 @@
       lastName: String(data.lastName || "").trim(),
       discord: String(data.discord || "").trim(),
       photo: String(data.photo || "").trim(),
-      positions: Array.isArray(data.positions) ? data.positions.filter(function (p) {
-        return POSITIONS.indexOf(p) !== -1;
+      positions: Array.isArray(data.positions) ? data.positions.map(canonicalPosition).filter(function (p, i, arr) {
+        return p && arr.indexOf(p) === i;
       }) : [],
-      rank: RANKS.indexOf(data.rank) !== -1 ? data.rank : "Интерн",
+      rank: RANKS.indexOf(rank) !== -1 ? rank : "Интерн",
       clan: CLANS.indexOf(data.clan) !== -1 ? data.clan : "Нет клана",
       status: STATUSES.indexOf(data.status) !== -1 ? data.status : "active",
       warnings: normalizeWarnings(data.warnings),
@@ -428,18 +449,18 @@
   }
 
   function isLead(user) {
-    return !!user && (user.positions.indexOf("Глава Медицинского Корпуса") !== -1);
+    return hasPosition(user, "Глава Медицинского Корпуса");
   }
 
   function isDeputy(user) {
-    return !!user && (user.positions.indexOf("Заместитель Главы") !== -1);
+    return hasPosition(user, "Заместитель Главы");
   }
 
   function rankWeight(user) {
     if (isLead(user)) return 0;
     if (isDeputy(user)) return 1;
-    if (user.positions.indexOf("Главный врач больницы Листа") !== -1) return 2;
-    if (user.positions.indexOf("Второй врач Конохи") !== -1) return 3;
+    if (hasPosition(user, "Главный врач больницы Листа")) return 2;
+    if (hasPosition(user, "Второй врач Конохи")) return 3;
     if (user.rank === "Ст. медик") return 4;
     if (user.rank === "Медик") return 5;
     return 6;
@@ -447,7 +468,11 @@
 
   function rosterUsers() {
     return users()
-      .filter(function (u) { return u.role !== "developer"; })
+      .filter(function (u) {
+        /* Разработчик тоже состоит в корпусе, если ему назначена должность. */
+        if (u.role !== "developer") return true;
+        return u.positions.length > 0;
+      })
       .sort(function (a, b) {
         if (a.status !== b.status) return a.status === "active" ? -1 : 1;
         var diff = rankWeight(a) - rankWeight(b);
@@ -480,6 +505,8 @@
     displayName: displayName,
     warningCount: warningCount,
     normalizeWarnings: normalizeWarnings,
+    normalizePosition: normalizePosition,
+    hasPosition: hasPosition,
     isLead: isLead,
     isDeputy: isDeputy,
     rankWeight: rankWeight,
