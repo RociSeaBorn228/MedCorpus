@@ -344,7 +344,7 @@
       createdAt: iso(0, 12)
     });
     if (!user.firstName) throw new Error("Укажите имя.");
-    user.updatedAt = Date.now();
+    user.updatedAt = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
     db.users.push(user);
     save(db);
     return user;
@@ -359,7 +359,7 @@
       return found;
     });
     if (!found) throw new Error("Пользователь не найден.");
-    found.updatedAt = Date.now();
+    found.updatedAt = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
     save(db);
     return found;
   }
@@ -374,7 +374,7 @@
     try { session = localStorage.getItem(SESSION_KEY); } catch (e) { session = null; }
     if (session === id) throw new Error("Нельзя удалить аккаунт, под которым вы вошли.");
 
-    var now = Date.now();
+    var now = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
     db.removed = db.removed || { users: {}, reports: {} };
     db.removed.users[id] = now;
     db.reports.forEach(function (r) {
@@ -402,7 +402,7 @@
       body: String(body || "").trim(),
       status: "new",
       createdAt: new Date().toISOString(),
-      updatedAt: Date.now()
+      updatedAt: Math.max(Date.now(), (Number(db.epoch) || 0) + 1)
     };
     if (!report.title || !report.body) throw new Error("Заполните заголовок и текст рапорта.");
     db.reports.push(report);
@@ -412,7 +412,7 @@
 
   function updateReport(id, patch) {
     var db = getDB();
-    var now = Date.now();
+    var now = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
     db.reports = db.reports.map(function (r) {
       return r.id === id ? normalizeReport(Object.assign({}, r, patch, { updatedAt: now })) : r;
     });
@@ -422,7 +422,7 @@
   function deleteReport(id) {
     var db = getDB();
     db.removed = db.removed || { users: {}, reports: {} };
-    db.removed.reports[id] = Date.now();
+    db.removed.reports[id] = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
     db.reports = db.reports.filter(function (r) { return r.id !== id; });
     save(db);
   }
