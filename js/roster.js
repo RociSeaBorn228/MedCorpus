@@ -102,7 +102,10 @@
   }
 
   function techRow(user, position) {
-    var others = user.positions.filter(function (item) { return item !== position; });
+    var needle = MCStore.normalizePosition(position);
+    var others = user.positions.filter(function (item) {
+      return MCStore.normalizePosition(item) !== needle;
+    });
     var role = others.length
       ? others.map(function (item) { return '<span class="tag tag--green">' + esc(item) + "</span>"; }).join("")
       : '<span class="tag">' + esc(user.rank) + "</span>";
@@ -135,7 +138,7 @@
       if (!block.list) return;
 
       var members = all.filter(function (user) {
-        return user.positions.indexOf(block.position) !== -1;
+        return MCStore.hasPosition(user, block.position);
       });
       var seats = Math.max(TECH_SEATS, members.length);
 
@@ -446,4 +449,10 @@
 
   render();
   MCStore.subscribe(render);
+
+  /* Изменения в другой вкладке (например, в панели разработчика) — обновляем состав. */
+  window.addEventListener("storage", function (event) {
+    if (event.key && event.key.indexOf("medcorpus.db") !== 0) return;
+    render();
+  });
 })();
