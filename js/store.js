@@ -504,7 +504,6 @@
   var CLOUD_POLL_MS = 15000;
 
   var cloudTimer = null;
-  var cloudBusy = false;
 
   function cloudHeaders() {
     return {
@@ -577,15 +576,22 @@
     }).join(",") + "}";
   }
 
-  function mergeCollection(localItems, remoteItems, localTombs, remoteTombs) {
+  /* epochFloor — метка явной публикации из другого браузера. Локальные
+     записи, созданные до неё, считаются устаревшими; записи, созданные
+     после (например, новая регистрация), сохраняются. */
+  function mergeCollection(localItems, remoteItems, localTombs, remoteTombs, epochFloor) {
     var locals = {};
     var remotes = {};
     var tombs = {};
+    var floor = Number(epochFloor) || 0;
 
-    (localItems || []).forEach(function (item) { if (item && item.id) locals[item.id] = item; });
+    (localItems || []).forEach(function (item) {
+      if (item && item.id && (!floor || Number(item.updatedAt) > floor)) locals[item.id] = item;
+    });
     (remoteItems || []).forEach(function (item) { if (item && item.id) remotes[item.id] = item; });
 
     Object.keys(localTombs || {}).forEach(function (id) {
+      if (floor && Number(localTombs[id]) <= floor) return;
       tombs[id] = Math.max(tombs[id] || 0, localTombs[id]);
     });
     Object.keys(remoteTombs || {}).forEach(function (id) {
@@ -625,12 +631,12 @@
     return { items: items, tombs: tombs, localWins: localWins };
   }
 
-  function mergeDb(localData, remoteData) {
+  function mergeDb(localData, remoteData, epochFloor) {
     var local = normalizeDb(localData);
     var remote = normalizeDb(remoteData);
 
-    var users = mergeCollection(local.users, remote.users, local.removed.users, remote.removed.users);
-    var reports = mergeCollection(local.reports, remote.reports, local.removed.reports, remote.removed.reports);
+    var users = mergeCollection(local.users, remote.users, local.removed.users, remote.removed.users, epochFloor);
+    var reports = mergeCollection(local.reports, remote.reports, local.removed.reports, remote.removed.reports, epochFloor);
 
     return {
       state: {
@@ -680,15 +686,71 @@
     });
   }
 
+  function hasLocalChanges(db) {
+    var source = db || normalizeDb(readRaw());
+    if (!source) return false;
+    return source.users.some(function (u) { return Number(u.updatedAt) > 0; }) ||
+      source.reports.some(function (r) { return Number(r.updatedAt) > 0; }) ||
+      Object.keys(source.removed.users).length > 0 ||
+      Object.keys(source.removed.reports).length > 0;
+  }
+
+  /* Все обращения к облаку идут по очереди: ответ одного запроса не должен
+     перезаписывать изменения, сделанные во время другого. */
+  var cloudQueue = Promise.resolve();
+
+  function runCloud(task) {
+    var next = cloudQueue.then(task, task);
+    cloudQueue = next.catch(function () { /* ignore */ });
+    return next;
+  }
+
   function queueCloudPush(db) {
     if (!CLOUD_ON || !db) return;
     if (cloudTimer) clearTimeout(cloudTimer);
     cloudTimer = setTimeout(function () {
       cloudTimer = null;
-      cloudPush(db).catch(function (error) {
+      flushCloudPush().catch(function (error) {
         console.warn("Не удалось сохранить данные в облако:", error);
       });
     }, 600);
+  }
+
+  /* Отправка с предварительным чтением облака: записи других устройств
+     сохраняются, а метка явной публикации (epoch) никогда не понижается. */
+  function flushCloudPush() {
+    if (!CLOUD_ON) return Promise.resolve(false);
+    if (cloudTimer) { clearTimeout(cloudTimer); cloudTimer = null; }
+
+    return runCloud(function () {
+      var local = normalizeDb(readRaw() || getDB());
+
+      return cloudPull().catch(function () { return null; }).then(function (remote) {
+        if (!remote || !Array.isArray(remote.users)) {
+          if (!hasLocalChanges(local)) return false;
+          return cloudPush(local);
+        }
+
+        var remoteDb = normalizeDb(remote);
+        var localEpoch = Number(local.epoch) || 0;
+        var remoteEpoch = Number(remoteDb.epoch) || 0;
+        var merged;
+
+        if (remoteEpoch > localEpoch) {
+          /* Кто-то опубликовал базу позже нас: его состояние главнее, но
+             регистрации, сделанные уже после публикации, сохраняем. */
+          merged = mergeDb(local, remoteDb, remoteEpoch).state;
+          merged.epoch = remoteEpoch;
+        } else {
+          merged = mergeDb(local, remoteDb).state;
+          merged.epoch = Math.max(localEpoch, remoteEpoch);
+        }
+
+        if (canon(merged) !== canon(local)) adopt(merged);
+        if (canon(merged) === canon(remoteDb)) return false;
+        return cloudPush(merged);
+      });
+    });
   }
 
   function applyRemote(remoteData) {
@@ -705,10 +767,15 @@
     var localEpoch = localDb.epoch || 0;
     var remoteEpoch = remote.epoch || 0;
 
-    /* Публикация из другого браузера — принимаем её состояние целиком. */
+    /* Публикация из другого браузера: принимаем её состояние, но сохраняем
+       записи, появившиеся здесь уже после этой публикации. */
     if (remoteEpoch > localEpoch) {
-      adopt(remote);
-      return true;
+      var published = mergeDb(localDb, remote, remoteEpoch).state;
+      published.epoch = remoteEpoch;
+      var publishedChanged = canon(published) !== canon(localDb);
+      if (publishedChanged) adopt(published);
+      if (canon(published) !== canon(remote)) queueCloudPush(published);
+      return publishedChanged;
     }
 
     /* Этот браузер опубликован позже — отправляем его состояние. */
@@ -717,36 +784,41 @@
       return false;
     }
 
-    var merged = mergeDb(localDb, remote);
-    var changed = canon(merged.state) !== canon(localDb);
+    var merged = mergeDb(localDb, remote).state;
+    var changed = canon(merged) !== canon(localDb);
 
-    if (changed) adopt(merged.state);
-    if (canon(merged.state) !== canon(remote)) {
+    if (changed) adopt(merged);
+    if (canon(merged) !== canon(remote)) {
       /* В этом браузере есть записи, которых нет в облаке: отправляем их. */
-      queueCloudPush(merged.state);
+      queueCloudPush(merged);
     }
     return changed;
   }
 
   function cloudTick() {
-    if (!CLOUD_ON || cloudBusy) return Promise.resolve();
-    cloudBusy = true;
-    return cloudPull().then(function (remote) {
-      if (!remote) {
-        /* В облаке ещё нет данных: ждём, пока разработчик опубликует
-           состав из нужного браузера, и не затираем чужую работу. */
-        notifyCloudState(false);
+    if (!CLOUD_ON) return Promise.resolve();
+
+    return runCloud(function () {
+      return cloudPull().then(function (remote) {
+        if (!remote) {
+          /* В облаке ещё нет строки: создаём её, только если в этом браузере
+             уже есть настоящие изменения (например, регистрация). */
+          var local = normalizeDb(readRaw() || getDB());
+          if (hasLocalChanges(local)) {
+            notifyCloudState(true);
+            return cloudPush(local);
+          }
+          notifyCloudState(false);
+          return null;
+        }
+        notifyCloudState(true);
+        applyRemote(remote);
         return null;
-      }
-      notifyCloudState(true);
-      applyRemote(remote);
-      return null;
-    }).catch(function (error) {
-      notifyCloudState(null);
-      console.warn("Синхронизация с облаком недоступна:", error);
-      return null;
-    }).then(function () {
-      cloudBusy = false;
+      }).catch(function (error) {
+        notifyCloudState(null);
+        console.warn("Синхронизация с облаком недоступна:", error);
+        return null;
+      });
     });
   }
 
@@ -761,28 +833,32 @@
     if (!CLOUD_ON) return Promise.reject(new Error("Общая база не подключена."));
     if (cloudTimer) { clearTimeout(cloudTimer); cloudTimer = null; }
 
-    var local = normalizeDb(getDB());
-    return cloudPull().catch(function () { return null; }).then(function (remote) {
-      var remoteEpoch = remote ? Number(remote.epoch) || 0 : 0;
-      local.epoch = Math.max(Date.now(), remoteEpoch + 1, (local.epoch || 0) + 1);
-      local.updatedAt = Date.now();
-      adopt(local);
-      return cloudPush(local);
-    }).then(function () {
-      notifyCloudState(true);
-      return normalizeDb(getDB());
+    return runCloud(function () {
+      var local = normalizeDb(getDB());
+      return cloudPull().catch(function () { return null; }).then(function (remote) {
+        var remoteEpoch = remote ? Number(remote.epoch) || 0 : 0;
+        local.epoch = Math.max(Date.now(), remoteEpoch + 1, (local.epoch || 0) + 1);
+        local.updatedAt = Date.now();
+        adopt(local);
+        return cloudPush(local);
+      }).then(function () {
+        notifyCloudState(true);
+        return normalizeDb(getDB());
+      });
     });
   }
 
   /* Явная загрузка данных из общей базы, даже если они «старше» локальных. */
   function loadRemote() {
     if (!CLOUD_ON) return Promise.reject(new Error("Общая база не подключена."));
-    return cloudPull().then(function (remote) {
-      if (!remote || !Array.isArray(remote.users)) throw new Error("В общей базе пока нет данных.");
-      var adopted = normalizeDb(remote);
-      adopt(adopted);
-      notifyCloudState(true);
-      return adopted;
+    return runCloud(function () {
+      return cloudPull().then(function (remote) {
+        if (!remote || !Array.isArray(remote.users)) throw new Error("В общей базе пока нет данных.");
+        var adopted = normalizeDb(remote);
+        adopt(adopted);
+        notifyCloudState(true);
+        return adopted;
+      });
     });
   }
 
@@ -830,6 +906,8 @@
     uid: uid,
     cloudEnabled: CLOUD_ON,
     syncNow: cloudTick,
+    pushNow: flushCloudPush,
+    hasLocalChanges: hasLocalChanges,
     publishLocal: publishLocal,
     loadRemote: loadRemote
   };
