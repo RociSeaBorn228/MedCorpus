@@ -916,6 +916,20 @@
 .profile__actions { display: grid; gap: 8px; }
 .profile__actions .btn { width: 100%; }
 
+.profile-photo summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+.profile-photo summary:hover { color: var(--accent); }
+.profile-photo[open] summary { margin-bottom: 14px; }
+.photo-form__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-form__actions .btn { flex: 1 1 130px; }
+
 .profile-facts {
   display: grid;
   gap: 10px;
