@@ -14,8 +14,5 @@ window.MC_CONFIG = {
   supabaseUrl: "https://pbawnizilzyspphnelfu.supabase.co",
   supabaseKey: "sb_publishable_nnqg2K6iTqS6yANsfkk_FA_YDsR61Ih",
   table: "medcorpus_state",
-  rowId: "main",
-  /* Регистрация подтверждается кодом из письма (Supabase Auth).
-     Поставьте false, только если нужно вернуть регистрацию без письма. */
-  emailConfirm: true
+  rowId: "main"
 };
