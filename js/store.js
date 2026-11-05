@@ -22,7 +22,22 @@
   ];
   var POSITIONS = LEAD_POSITIONS.concat(STAFF_POSITIONS);
   var RANKS = ["Медик", "Интерн", "Ст. медик"];
-  var CLANS = ["Учиха", "Нара", "Хьюга", "Нет клана"];
+  var CLANS = [
+    "Учиха",
+    "Сенджу",
+    "Хьюга",
+    "Узумаки",
+    "Нара",
+    "Яманака",
+    "Акимичи",
+    "Инузука",
+    "Абураме",
+    "Сарутоби",
+    "Шимура",
+    "Хатаке",
+    "Курама",
+    "Нет клана"
+  ];
   var STATUSES = ["active", "inactive"];
   var WARNING_SLOTS = { oral: 3, written: 2 };
 
