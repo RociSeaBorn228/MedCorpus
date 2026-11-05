@@ -408,13 +408,27 @@
     });
   }
 
-  function addReport(userId, title, body) {
+  function reportPhotos(input) {
+    var list = Array.isArray(input) ? input : (input ? [input] : []);
+    var out = [];
+    var seen = {};
+    list.forEach(function (item) {
+      var value = String(item || "").trim();
+      if (!value || value.length > 400000 || seen[value]) return;
+      seen[value] = true;
+      out.push(value);
+    });
+    return out.slice(0, 3);
+  }
+
+  function addReport(userId, title, body, photos) {
     var db = getDB();
     var report = {
       id: uid("r"),
       userId: userId,
       title: String(title || "").trim(),
       body: String(body || "").trim(),
+      photos: reportPhotos(photos),
       status: "new",
       createdAt: new Date().toISOString(),
       updatedAt: Math.max(Date.now(), (Number(db.epoch) || 0) + 1)
@@ -550,6 +564,7 @@
       userId: source.userId,
       title: String(source.title || ""),
       body: String(source.body || ""),
+      photos: reportPhotos(source.photos || source.photo),
       status: source.status || "new",
       createdAt: source.createdAt || "",
       updatedAt: Number(source.updatedAt) || 0
