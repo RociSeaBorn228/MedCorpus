@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Вход в аккаунт — Медкорпус Конохи</title>
-  <meta name="description" content="Вход и регистрация в медкорпусе Конохи: личный кабинет, рапорта и доступ к панели разработчика.">
+  <meta name="description" content="Вход в медкорпус Конохи: личный кабинет, рапорта и доступ к панели разработчика.">
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,13 +63,9 @@
         </div>
 
         <div class="auth-panel reveal">
-          <div class="auth-tabs" role="tablist" aria-label="Вход или регистрация">
-            <button id="tabLogin" type="button" role="tab" aria-selected="true" aria-controls="loginForm">Вход</button>
-            <button id="tabRegister" type="button" role="tab" aria-selected="false" aria-controls="registerForm" tabindex="-1">Регистрация</button>
-          </div>
-
           <div class="auth-forms">
-            <form class="form is-active" id="loginForm" novalidate aria-labelledby="tabLogin">
+            <form class="form is-active" id="loginForm" novalidate aria-labelledby="loginTitle">
+              <h2 class="auth-title" id="loginTitle">Вход</h2>
               <p class="form-error" hidden></p>
               <div class="field">
                 <label for="loginEmail">Email</label>
@@ -80,64 +76,7 @@
                 <input id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="••••••••">
               </div>
               <button class="btn btn--primary" type="submit">Войти</button>
-              <p class="form-note">Нет аккаунта? Переключитесь на вкладку «Регистрация».</p>
-            </form>
-
-            <form class="form" id="registerForm" novalidate aria-labelledby="tabRegister">
-              <p class="form-error" hidden></p>
-              <div class="field-grid">
-                <div class="field">
-                  <label for="regFirstName">Имя</label>
-                  <input id="regFirstName" name="firstName" type="text" autocomplete="given-name" maxlength="40" required placeholder="Акира">
-                </div>
-                <div class="field">
-                  <label for="regLastName">Фамилия</label>
-                  <input id="regLastName" name="lastName" type="text" autocomplete="family-name" maxlength="60" placeholder="Сенджу">
-                </div>
-              </div>
-              <div class="field">
-                <label for="regEmail">Email</label>
-                <input id="regEmail" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-              </div>
-              <div class="field">
-                <label for="regDiscord">Discord</label>
-                <input id="regDiscord" name="discord" type="text" maxlength="60" placeholder="nickname или nickname#0000">
-                <p class="field__hint">Необязательно. Будет виден в вашей карточке состава.</p>
-              </div>
-              <div class="field-grid">
-                <div class="field">
-                  <label for="regPassword">Пароль</label>
-                  <input id="regPassword" name="password" type="password" autocomplete="new-password" minlength="6" required placeholder="Минимум 6 символов">
-                </div>
-                <div class="field">
-                  <label for="regPassword2">Повтор пароля</label>
-                  <input id="regPassword2" name="password2" type="password" autocomplete="new-password" minlength="6" required placeholder="Ещё раз">
-                </div>
-              </div>
-              <button class="btn btn--primary" type="submit">Создать аккаунт</button>
-              <p class="form-note">После регистрации вы получите должность «Интерн» и ранг «Интерн». Аккаунт появится в составе сразу после подтверждения почты — публиковать ничего не нужно.</p>
-            </form>
-
-            <form class="form" id="confirmForm" novalidate aria-labelledby="tabRegister">
-              <p class="form-error" hidden></p>
-              <div class="confirm-head">
-                <span class="confirm-head__icon" aria-hidden="true">✉</span>
-                <div>
-                  <p class="confirm-head__title">Подтвердите почту</p>
-                  <p class="confirm-head__text">Мы отправили код на <strong id="confirmEmail"></strong>. Введите его ниже — и аккаунт сразу появится в составе.</p>
-                </div>
-              </div>
-              <div class="field">
-                <label for="confirmCode">Код из письма</label>
-                <input id="confirmCode" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" required placeholder="123456">
-                <p class="field__hint">Обычно это 6 цифр. Если в письме только кнопка — нажмите её, аккаунт создастся автоматически.</p>
-              </div>
-              <button class="btn btn--primary" type="submit">Подтвердить и войти</button>
-              <div class="confirm-actions">
-                <button class="btn btn--ghost btn--small" type="button" id="resendCode">Отправить ещё раз</button>
-                <button class="btn btn--ghost btn--small" type="button" id="changeEmail">Изменить данные</button>
-              </div>
-              <p class="form-note">Письмо может прийти в «Спам». Отправитель — сервис Supabase Auth.</p>
+              <p class="form-note">Аккаунты создаёт разработчик корпуса. Если у вас нет доступа — напишите ему, указав имя, email и желаемый пароль.</p>
             </form>
           </div>
 
