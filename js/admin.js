@@ -131,6 +131,7 @@
           (STATUS_TEXT[status] || esc(status)) + "</span>" +
       "</div>" +
       '<p class="report-item__body">' + esc(report.body) + "</p>" +
+      MCAuth.photoGallery(report.photos) +
       '<div class="report-item__actions">' +
         (status === "new"
           ? '<button class="btn btn--ghost btn--small" type="button" data-report-status="read" data-report="' + esc(report.id) + '">Пометить прочитанным</button>'
