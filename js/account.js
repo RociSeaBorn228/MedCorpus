@@ -86,6 +86,22 @@
             "</div>" +
             statusHTML(user) +
           "</div>" +
+          '<details class="profile-photo">' +
+            "<summary>Изменить фото профиля</summary>" +
+            '<form class="form" id="photoForm" novalidate>' +
+              '<p class="form-error" hidden></p>' +
+              '<div class="field">' +
+                '<label for="profilePhoto">Ссылка на фото</label>' +
+                '<input id="profilePhoto" name="photo" type="url" maxlength="1000" placeholder="https://i.imgur.com/…jpg" value="' + esc(user.photo || "") + '">' +
+                '<p class="field__hint">Прямая ссылка на картинку или ссылка на пост/галерею Imgur. Перед сохранением ссылка проверяется.</p>' +
+              "</div>" +
+              '<div class="photo-preview" id="photoPreview" hidden></div>' +
+              '<div class="photo-form__actions">' +
+                '<button class="btn btn--primary btn--small" type="submit">Сохранить фото</button>' +
+                '<button class="btn btn--ghost btn--small" type="button" data-photo-remove>Удалить фото</button>' +
+              "</div>" +
+            "</form>" +
+          "</details>" +
           '<ul class="profile-facts">' +
             "<li><b>Ранг</b><span>" + esc(user.rank) + "</span></li>" +
             "<li><b>Клан</b><span>" + esc(user.clan) + "</span></li>" +
@@ -132,6 +148,65 @@
       "</div>";
 
     MCAuth.bindAvatars(root);
+
+    var photoForm = document.getElementById("photoForm");
+    if (photoForm) {
+      var photoInput = photoForm.elements.photo;
+      var photoPreview = document.getElementById("photoPreview");
+      MCAuth.bindPhotoPreview(photoInput, photoPreview);
+
+      photoForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        var errorBox = photoForm.querySelector(".form-error");
+        var submit = photoForm.querySelector('button[type="submit"]');
+        var value = photoInput.value.trim();
+        errorBox.hidden = true;
+
+        if (!value) {
+          errorBox.textContent = "Укажите ссылку на фото или нажмите «Удалить фото».";
+          errorBox.hidden = false;
+          return;
+        }
+
+        if (submit) {
+          submit.disabled = true;
+          submit.dataset.label = submit.textContent;
+          submit.textContent = "Проверяем…";
+        }
+
+        try {
+          var direct = await MCAuth.resolvePhotoUrl(value);
+          if (!direct) {
+            throw new Error("Не удалось найти изображение. Укажите прямую ссылку на картинку или ссылку на пост/галерею Imgur.");
+          }
+          MCStore.updateUser(user.id, { photo: direct });
+          MCAuth.toast("Фото профиля обновлено", "ok");
+          render();
+        } catch (error) {
+          errorBox.textContent = error.message || "Не удалось сохранить фото.";
+          errorBox.hidden = false;
+        } finally {
+          if (submit && submit.isConnected) {
+            submit.disabled = false;
+            submit.textContent = submit.dataset.label || "Сохранить фото";
+          }
+        }
+      });
+
+      var removePhoto = photoForm.querySelector("[data-photo-remove]");
+      if (removePhoto) {
+        removePhoto.addEventListener("click", function () {
+          if (!user.photo) {
+            MCAuth.toast("У вас ещё нет фото", "ok");
+            return;
+          }
+          if (!window.confirm("Удалить фото профиля?")) return;
+          MCStore.updateUser(user.id, { photo: "" });
+          MCAuth.toast("Фото профиля удалено", "ok");
+          render();
+        });
+      }
+    }
 
     var form = document.getElementById("reportForm");
     var errorBox = form.querySelector(".form-error");
