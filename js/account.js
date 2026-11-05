@@ -15,6 +15,61 @@
   var STATUS_TEXT = { new: "Новый", read: "Прочитан", closed: "Закрыт" };
   var STATUS_CLASS = { new: "badge-status--new", read: "badge-status--read", closed: "badge-status--closed" };
 
+  var MAX_REPORT_PHOTOS = 3;
+  var MAX_PHOTO_CHARS = 170000;
+
+  function loadImage(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error("Не удалось прочитать фото.")); };
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error("Не удалось открыть изображение.")); };
+        img.onload = function () { resolve(img); };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function drawPhoto(img, maxSide, quality) {
+    var scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+    var width = Math.max(1, Math.round(img.width * scale));
+    var height = Math.max(1, Math.round(img.height * scale));
+    var canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
+    var data = canvas.toDataURL("image/webp", quality);
+    if (data.indexOf("data:image/webp") === 0) return data;
+    return canvas.toDataURL("image/jpeg", quality);
+  }
+
+  async function compressReportPhoto(file) {
+    if (!file || !/^image\//i.test(file.type || "")) {
+      throw new Error("Можно прикрепить только изображение.");
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      throw new Error("Фото больше 12 МБ. Выберите файл поменьше.");
+    }
+    var img = await loadImage(file);
+    var attempts = [
+      [1200, 0.8],
+      [1000, 0.72],
+      [860, 0.62],
+      [720, 0.55],
+      [600, 0.5]
+    ];
+    for (var i = 0; i < attempts.length; i += 1) {
+      var data = drawPhoto(img, attempts[i][0], attempts[i][1]);
+      if (data.length <= MAX_PHOTO_CHARS) return data;
+    }
+    throw new Error("Не удалось сжать фото. Попробуйте изображение поменьше.");
+  }
+
   function day(value) {
     var date = new Date(value);
     if (isNaN(date.getTime())) return "—";
@@ -60,6 +115,7 @@
           (STATUS_TEXT[status] || status) + "</span>" +
       "</div>" +
       '<p class="report-item__body">' + esc(report.body) + "</p>" +
+      MCAuth.photoGallery(report.photos) +
       "</article>";
   }
 
@@ -136,6 +192,19 @@
                 '<label for="reportBody">Текст</label>' +
                 '<textarea id="reportBody" name="body" maxlength="2000" placeholder="Опишите ситуацию, просьбу или отчёт о смене." required></textarea>' +
               "</div>" +
+              '<div class="field">' +
+                '<span class="field__label">Фото к рапорту</span>' +
+                '<div class="report-drop" id="reportPhotoDrop">' +
+                  '<label class="report-drop__btn" for="reportPhotoInput">' +
+                    '<span class="report-drop__icon" aria-hidden="true">＋</span>' +
+                    "<span>Добавить фото</span>" +
+                  "</label>" +
+                  '<input id="reportPhotoInput" type="file" accept="image/*" multiple hidden>' +
+                  '<p class="report-drop__hint" id="reportPhotoHint">До 3 фото. Можно вставить изображение из буфера обмена: Ctrl+V (Mac: Cmd+V) прямо в форму.</p>' +
+                "</div>" +
+                '<div class="report-attachments" id="reportAttachments" hidden></div>' +
+                '<p class="form-error" id="reportPhotoError" hidden></p>' +
+              "</div>" +
               '<div><button class="btn btn--primary btn--small" type="submit">Отправить рапорт</button></div>' +
             "</form>" +
             '<div class="report-list" id="reportList">' +
@@ -210,6 +279,115 @@
 
     var form = document.getElementById("reportForm");
     var errorBox = form.querySelector(".form-error");
+    var photoInput = document.getElementById("reportPhotoInput");
+    var photoDrop = document.getElementById("reportPhotoDrop");
+    var photoList = document.getElementById("reportAttachments");
+    var photoError = document.getElementById("reportPhotoError");
+    var photoHint = document.getElementById("reportPhotoHint");
+    var defaultPhotoHint = photoHint.textContent;
+    var photos = [];
+    var pendingPhotos = 0;
+
+    function showPhotoError(message) {
+      photoError.textContent = message || "";
+      photoError.hidden = !message;
+    }
+
+    function updatePhotoHint() {
+      if (pendingPhotos > 0) {
+        photoHint.textContent = "Обрабатываем фото…";
+      } else {
+        photoHint.textContent = defaultPhotoHint;
+      }
+    }
+
+    function renderPhotos() {
+      photoList.hidden = !photos.length;
+      photoList.innerHTML = photos.map(function (src, index) {
+        return '<figure class="report-attach">' +
+          '<img src="' + esc(src) + '" alt="Фото ' + (index + 1) + '">' +
+          '<button class="report-attach__remove" type="button" data-report-photo-remove="' + index + '" aria-label="Удалить фото">×</button>' +
+        "</figure>";
+      }).join("");
+    }
+
+    function addPhoto(file) {
+      if (!file) return;
+      showPhotoError("");
+      if (photos.length + pendingPhotos >= MAX_REPORT_PHOTOS) {
+        showPhotoError("Можно прикрепить не больше " + MAX_REPORT_PHOTOS + " фото.");
+        return;
+      }
+      pendingPhotos += 1;
+      updatePhotoHint();
+      compressReportPhoto(file).then(function (data) {
+        if (photos.length < MAX_REPORT_PHOTOS && photos.indexOf(data) === -1) {
+          photos.push(data);
+          renderPhotos();
+        }
+      }).catch(function (error) {
+        showPhotoError(error.message || "Не удалось добавить фото.");
+      }).finally(function () {
+        pendingPhotos -= 1;
+        updatePhotoHint();
+      });
+    }
+
+    if (photoInput) {
+      photoInput.addEventListener("change", function () {
+        Array.prototype.forEach.call(photoInput.files || [], addPhoto);
+        photoInput.value = "";
+      });
+    }
+
+    if (photoList) {
+      photoList.addEventListener("click", function (event) {
+        var button = event.target.closest("[data-report-photo-remove]");
+        if (!button) return;
+        photos.splice(Number(button.dataset.reportPhotoRemove), 1);
+        showPhotoError("");
+        renderPhotos();
+      });
+    }
+
+    if (photoDrop) {
+      ["dragenter", "dragover"].forEach(function (name) {
+        photoDrop.addEventListener(name, function (event) {
+          event.preventDefault();
+          photoDrop.classList.add("is-dragover");
+        });
+      });
+      ["dragleave", "drop"].forEach(function (name) {
+        photoDrop.addEventListener(name, function (event) {
+          event.preventDefault();
+          photoDrop.classList.remove("is-dragover");
+        });
+      });
+      photoDrop.addEventListener("drop", function (event) {
+        var files = event.dataTransfer && event.dataTransfer.files;
+        Array.prototype.forEach.call(files || [], addPhoto);
+      });
+    }
+
+    form.addEventListener("paste", function (event) {
+      var clipboard = event.clipboardData;
+      if (!clipboard) return;
+      var files = [];
+      Array.prototype.forEach.call(clipboard.items || [], function (item) {
+        if (item.kind === "file" && /^image\//i.test(item.type || "")) {
+          var file = item.getAsFile();
+          if (file) files.push(file);
+        }
+      });
+      if (!files.length) {
+        Array.prototype.forEach.call(clipboard.files || [], function (file) {
+          if (/^image\//i.test(file.type || "")) files.push(file);
+        });
+      }
+      if (!files.length) return;
+      event.preventDefault();
+      files.forEach(addPhoto);
+    });
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -227,9 +405,14 @@
         errorBox.hidden = false;
         return;
       }
+      if (pendingPhotos > 0) {
+        errorBox.textContent = "Подождите: фото ещё обрабатывается.";
+        errorBox.hidden = false;
+        return;
+      }
 
       try {
-        MCStore.addReport(user.id, title, body);
+        MCStore.addReport(user.id, title, body, photos.slice());
         MCAuth.toast("Рапорт отправлен разработчику", "ok");
         render();
       } catch (error) {
