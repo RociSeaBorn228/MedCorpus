@@ -90,6 +90,23 @@
     });
   }
 
+  function safeReportPhoto(url) {
+    var value = safePhoto(url);
+    if (/^data:image\/svg\+xml/i.test(value)) return "";
+    return value;
+  }
+
+  function photoGallery(photos) {
+    if (!Array.isArray(photos)) return "";
+    var safe = photos.map(safeReportPhoto).filter(Boolean).slice(0, 3);
+    if (!safe.length) return "";
+    return '<div class="report-photos">' + safe.map(function (src, index) {
+      return '<a class="report-photo" href="' + esc(src) + '" target="_blank" rel="noopener">' +
+        '<img src="' + esc(src) + '" alt="Фото к рапорту ' + (index + 1) + '" loading="lazy">' +
+      "</a>";
+    }).join("") + "</div>";
+  }
+
   function initials(user) {
     if (!user) return "?";
     var a = (user.firstName || "").trim().charAt(0);
@@ -455,6 +472,7 @@
     initials: initials,
     avatar: avatar,
     bindAvatars: bindAvatars,
+    photoGallery: photoGallery,
     formatDate: formatDate,
     toast: toast,
     hashPassword: hashPassword,
