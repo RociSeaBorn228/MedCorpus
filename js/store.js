@@ -40,6 +40,7 @@
   ];
   var STATUSES = ["active", "inactive"];
   var WARNING_SLOTS = { oral: 3, written: 2 };
+  var SUPPORT_TOPICS = ["question", "bug", "account", "other"];
 
   var ADMIN_PASS_HASH = "56f2aa096cceec87df49202e3aafd1a730e67e0dbb1542d564e046c8ace65758";
   var DEMO_PASS_HASH = "0ead2060b65992dca4769af601a1b3a35ef38cfad2c2c465bb160ea764157c5d";
@@ -264,7 +265,7 @@
       }
     ];
 
-    return { version: DB_VERSION, users: users, reports: reports };
+    return { version: DB_VERSION, users: users, reports: reports, support: [] };
   }
 
   function emit(db) {
@@ -450,9 +451,89 @@
 
   function deleteReport(id) {
     var db = getDB();
-    db.removed = db.removed || { users: {}, reports: {} };
+    db.removed = db.removed || { users: {}, reports: {}, support: {} };
     db.removed.reports[id] = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
     db.reports = db.reports.filter(function (r) { return r.id !== id; });
+    save(db);
+  }
+
+  /* ---------- Техническая поддержка ---------- */
+
+  var SUPPORT_STATUSES = ["new", "read", "closed"];
+
+  function normalizeSupport(data) {
+    var source = data || {};
+    var topic = SUPPORT_TOPICS.indexOf(source.topic) !== -1 ? source.topic : "question";
+    var status = SUPPORT_STATUSES.indexOf(source.status) !== -1 ? source.status : "new";
+    return {
+      id: source.id,
+      userId: String(source.userId || ""),
+      name: String(source.name || "").trim(),
+      contact: String(source.contact || "").trim(),
+      topic: topic,
+      message: String(source.message || "").trim(),
+      reply: String(source.reply || "").trim(),
+      status: status,
+      createdAt: source.createdAt || "",
+      updatedAt: Number(source.updatedAt) || 0,
+      answeredAt: source.answeredAt || ""
+    };
+  }
+
+  function support() {
+    return getDB().support.slice().sort(function (a, b) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  }
+
+  function supportByUser(userId) {
+    var needle = String(userId || "");
+    if (!needle) return [];
+    return support().filter(function (t) { return t.userId === needle; });
+  }
+
+  function addSupport(data) {
+    var db = getDB();
+    var user = data.userId ? userById(data.userId) : null;
+    var ticket = normalizeSupport({
+      id: uid("s"),
+      userId: data.userId || "",
+      name: data.name || (user ? displayName(user) : ""),
+      contact: data.contact || (user ? user.email : ""),
+      topic: data.topic,
+      message: data.message,
+      status: "new",
+      createdAt: new Date().toISOString()
+    });
+    if (!ticket.message) throw new Error("Напишите текст обращения.");
+    if (ticket.message.length > 4000) throw new Error("Обращение слишком длинное (максимум 4000 символов).");
+    if (!ticket.name) ticket.name = user ? displayName(user) : "Гость";
+    ticket.updatedAt = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
+    db.support.push(ticket);
+    save(db);
+    return ticket;
+  }
+
+  function updateSupport(id, patch) {
+    var db = getDB();
+    var now = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
+    var found = null;
+    db.support = db.support.map(function (t) {
+      if (t.id !== id) return t;
+      found = normalizeSupport(Object.assign({}, t, patch, { id: t.id, userId: t.userId, createdAt: t.createdAt, updatedAt: now }));
+      if (found.reply && !found.answeredAt) found.answeredAt = new Date().toISOString();
+      return found;
+    });
+    if (!found) throw new Error("Обращение не найдено.");
+    save(db);
+    return found;
+  }
+
+  function deleteSupport(id) {
+    var db = getDB();
+    db.removed = db.removed || { users: {}, reports: {}, support: {} };
+    db.removed.support[id] = Math.max(Date.now(), (Number(db.epoch) || 0) + 1);
+    db.support = db.support.filter(function (t) { return t.id !== id; });
     save(db);
   }
 
@@ -590,9 +671,11 @@
       updatedAt: Number(db.updatedAt) || 0,
       users: Array.isArray(db.users) ? db.users.map(baseUser) : [],
       reports: Array.isArray(db.reports) ? db.reports.map(normalizeReport) : [],
+      support: Array.isArray(db.support) ? db.support.map(normalizeSupport) : [],
       removed: {
         users: normalizeTombs(removed.users),
-        reports: normalizeTombs(removed.reports)
+        reports: normalizeTombs(removed.reports),
+        support: normalizeTombs(removed.support)
       }
     };
   }
@@ -667,6 +750,7 @@
 
     var users = mergeCollection(local.users, remote.users, local.removed.users, remote.removed.users, epochFloor);
     var reports = mergeCollection(local.reports, remote.reports, local.removed.reports, remote.removed.reports, epochFloor);
+    var support = mergeCollection(local.support, remote.support, local.removed.support, remote.removed.support, epochFloor);
 
     return {
       state: {
@@ -675,9 +759,10 @@
         updatedAt: Math.max(local.updatedAt, remote.updatedAt),
         users: users.items,
         reports: reports.items,
-        removed: { users: users.tombs, reports: reports.tombs }
+        support: support.items,
+        removed: { users: users.tombs, reports: reports.tombs, support: support.tombs }
       },
-      localWins: users.localWins || reports.localWins
+      localWins: users.localWins || reports.localWins || support.localWins
     };
   }
 
@@ -721,8 +806,10 @@
     if (!source) return false;
     return source.users.some(function (u) { return Number(u.updatedAt) > 0; }) ||
       source.reports.some(function (r) { return Number(r.updatedAt) > 0; }) ||
+      source.support.some(function (t) { return Number(t.updatedAt) > 0; }) ||
       Object.keys(source.removed.users).length > 0 ||
-      Object.keys(source.removed.reports).length > 0;
+      Object.keys(source.removed.reports).length > 0 ||
+      Object.keys(source.removed.support).length > 0;
   }
 
   /* Все обращения к облаку идут по очереди: ответ одного запроса не должен
@@ -920,6 +1007,13 @@
     addReport: addReport,
     updateReport: updateReport,
     deleteReport: deleteReport,
+    support: support,
+    supportByUser: supportByUser,
+    addSupport: addSupport,
+    updateSupport: updateSupport,
+    deleteSupport: deleteSupport,
+    SUPPORT_TOPICS: SUPPORT_TOPICS,
+    SUPPORT_STATUSES: SUPPORT_STATUSES,
     loginSession: loginSession,
     logout: logout,
     sessionUser: sessionUser,
