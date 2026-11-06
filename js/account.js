@@ -11,9 +11,27 @@
   if (!root || !user) return;
 
   var esc = MCAuth.esc;
+  var t = window.MCI18n ? MCI18n.t : function (key) { return key; };
 
   var STATUS_TEXT = { new: "Новый", read: "Прочитан", closed: "Закрыт" };
   var STATUS_CLASS = { new: "badge-status--new", read: "badge-status--read", closed: "badge-status--closed" };
+
+  var SUPPORT_TOPIC_KEYS = {
+    question: "support.topicQuestion",
+    bug: "support.topicBug",
+    account: "support.topicAccount",
+    other: "support.topicOther"
+  };
+  var SUPPORT_STATUS_KEYS = {
+    new: "support.statusNew",
+    read: "support.statusRead",
+    closed: "support.statusClosed"
+  };
+  var SUPPORT_STATUS_CLASS = {
+    new: "badge-status--new",
+    read: "badge-status--read",
+    closed: "badge-status--closed"
+  };
 
   var MAX_REPORT_PHOTOS = 3;
   var MAX_PHOTO_CHARS = 170000;
@@ -119,6 +137,39 @@
       "</article>";
   }
 
+  function supportCard(ticket) {
+    var status = ticket.status || "new";
+    var topic = t(SUPPORT_TOPIC_KEYS[ticket.topic] || "support.topicOther");
+    var replied = !!ticket.reply;
+    return '<article class="support-ticket">' +
+      '<div class="support-ticket__head">' +
+        '<div>' +
+          '<h3 class="support-ticket__title">' + esc(topic) + "</h3>" +
+          '<p class="support-ticket__meta">' + esc(MCAuth.formatDate(ticket.createdAt)) + "</p>" +
+        "</div>" +
+        '<span class="badge-status ' + (SUPPORT_STATUS_CLASS[status] || "badge-status--read") + '">' +
+          esc(t(SUPPORT_STATUS_KEYS[status] || "support.statusNew")) + "</span>" +
+      "</div>" +
+      '<p class="support-ticket__body">' + esc(ticket.message) + "</p>" +
+      '<div class="support-reply' + (replied ? " is-answered" : "") + '">' +
+        '<span class="support-reply__label">' + esc(t("support.team")) + "</span>" +
+        (replied
+          ? '<p class="support-reply__text">' + esc(ticket.reply) + "</p>"
+          : '<p class="support-reply__pending">' + esc(t("support.replyPending")) + "</p>") +
+      "</div>" +
+    "</article>";
+  }
+
+  function renderSupport(person) {
+    var host = document.getElementById("supportList");
+    if (!host || !person) return;
+    var tickets = MCStore.supportByUser ? MCStore.supportByUser(person.id) : [];
+    host.innerHTML = tickets.length
+      ? tickets.map(supportCard).join("")
+      : '<div class="empty-state" data-i18n="support.historyEmpty">' + esc(t("support.historyEmpty")) + "</div>";
+    if (window.MCI18n) MCI18n.apply(host);
+  }
+
   function render() {
     var fresh = MCStore.sessionUser();
     if (!fresh) {
@@ -213,10 +264,24 @@
                 : '<div class="empty-state">Вы ещё не отправляли рапортов. Первый рапорт появится здесь.</div>') +
             "</div>" +
           "</section>" +
+
+          '<section class="panel support-panel">' +
+            '<div class="panel__head">' +
+              '<div>' +
+                '<h2 data-i18n="support.historyTitle">' + esc(t("support.historyTitle")) + "</h2>" +
+                '<p data-i18n="support.historyLead">' + esc(t("support.historyLead")) + "</p>" +
+              "</div>" +
+              '<button class="btn btn--primary btn--small" type="button" data-support-open data-i18n="support.newMessage">' +
+                esc(t("support.newMessage")) +
+              "</button>" +
+            "</div>" +
+            '<div class="support-list" id="supportList"></div>' +
+          "</section>" +
         "</div>" +
       "</div>";
 
     MCAuth.bindAvatars(root);
+    renderSupport(user);
 
     var photoForm = document.getElementById("photoForm");
     if (photoForm) {
@@ -427,6 +492,14 @@
       MCAuth.logout();
       window.location.replace("index.html");
     }
+  });
+
+  MCStore.subscribe(function () {
+    if (user) renderSupport(MCStore.sessionUser());
+  });
+
+  document.addEventListener("mcprefs:change", function () {
+    if (user) renderSupport(MCStore.sessionUser());
   });
 
   render();
