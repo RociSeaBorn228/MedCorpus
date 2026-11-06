@@ -437,18 +437,25 @@
       actions.insertBefore(slot, actions.firstChild);
     }
 
+    var tr = function (key) {
+      return window.MCI18n ? MCI18n.t(key) : key;
+    };
+
     var user = MCStore.sessionUser();
     if (user) {
       var isDev = user.role === "developer";
-      slot.innerHTML = '<a class="user-chip" href="account.html" title="Личный кабинет">' +
+      var devTitle = window.MCI18n ? MCI18n.t("auth.developer") : "Разработчик";
+      var accountTitle = window.MCI18n ? MCI18n.t("auth.account") : "Личный кабинет";
+      slot.innerHTML = '<a class="user-chip" href="account.html" title="' + esc(accountTitle) + '">' +
         avatar(user, "avatar--sm") +
-        '<span class="user-chip__name">' + esc(user.firstName || "Аккаунт") + "</span>" +
-        (isDev ? '<span class="user-chip__dev" title="Разработчик">DEV</span>' : "") +
+        '<span class="user-chip__name">' + esc(user.firstName || tr("auth.account")) + "</span>" +
+        (isDev ? '<span class="user-chip__dev" title="' + esc(devTitle) + '">DEV</span>' : "") +
         "</a>";
     } else {
-      slot.innerHTML = '<a class="btn btn--ghost btn--small auth-login" href="login.html">Войти</a>';
+      slot.innerHTML = '<a class="btn btn--ghost btn--small auth-login" href="login.html">' + esc(tr("auth.login")) + "</a>";
     }
     bindAvatars(slot);
+    if (window.MCI18n) MCI18n.apply();
   }
 
   if (document.readyState === "loading") {
