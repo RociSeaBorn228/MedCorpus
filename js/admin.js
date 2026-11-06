@@ -34,6 +34,8 @@
 
   var STATUS_TEXT = { new: "Новый", read: "Прочитан", closed: "Закрыт" };
   var STATUS_CLASS = { new: "badge-status--new", read: "badge-status--read", closed: "badge-status--closed" };
+  var SUPPORT_TOPIC_TEXT = { question: "Вопрос", bug: "Ошибка на сайте", account: "Аккаунт и вход", other: "Другое" };
+  var SUPPORT_STATUS_TEXT = { new: "Новое", read: "Прочитано", closed: "Закрыто" };
   var query = "";
 
   var dialog = document.getElementById("userDialog");
@@ -147,12 +149,56 @@
     "</article>";
   }
 
+  /* ---------- Обращения в поддержку ---------- */
+  function supportCard(ticket) {
+    var status = ticket.status || "new";
+    var author = ticket.userId ? MCStore.userById(ticket.userId) : null;
+    var name = ticket.name || (author ? MCStore.displayName(author) : "Гость");
+    var contact = ticket.contact || (author ? author.email : "");
+    var topic = SUPPORT_TOPIC_TEXT[ticket.topic] || SUPPORT_TOPIC_TEXT.other;
+
+    return '<article class="support-ticket support-ticket--admin">' +
+      '<div class="support-ticket__head">' +
+        "<div>" +
+          '<h3 class="support-ticket__title">' + esc(topic) + " · " + esc(name) + "</h3>" +
+          '<p class="support-ticket__meta">' + esc(MCAuth.formatDate(ticket.createdAt)) +
+            (contact ? " · " + esc(contact) : "") +
+            (author ? " · аккаунт" : " · гость") +
+          "</p>" +
+        "</div>" +
+        '<span class="badge-status ' + (STATUS_CLASS[status] || "badge-status--read") + '">' +
+          (SUPPORT_STATUS_TEXT[status] || esc(status)) + "</span>" +
+      "</div>" +
+      '<p class="support-ticket__body">' + esc(ticket.message) + "</p>" +
+      '<form class="support-admin__reply" data-support-reply-form="' + esc(ticket.id) + '">' +
+        '<label class="field">' +
+          '<span class="field__label">Ответ участнику</span>' +
+          '<textarea name="reply" maxlength="2000" placeholder="Напишите ответ. Участник увидит его в личном кабинете.">' +
+            esc(ticket.reply || "") +
+          "</textarea>" +
+        "</label>" +
+        '<div class="report-item__actions">' +
+          '<button class="btn btn--primary btn--small" type="submit">Сохранить ответ</button>' +
+          (status === "new"
+            ? '<button class="btn btn--ghost btn--small" type="button" data-support-status="read" data-support="' + esc(ticket.id) + '">Прочитано</button>'
+            : "") +
+          (status !== "closed"
+            ? '<button class="btn btn--ghost btn--small" type="button" data-support-status="closed" data-support="' + esc(ticket.id) + '">Закрыть</button>'
+            : '<button class="btn btn--ghost btn--small" type="button" data-support-status="new" data-support="' + esc(ticket.id) + '">Вернуть в работу</button>') +
+          '<button class="btn btn--ghost btn--small btn--danger" type="button" data-support-delete="' + esc(ticket.id) + '">Удалить</button>' +
+        "</div>" +
+      "</form>" +
+    "</article>";
+  }
+
   /* ---------- Отрисовка ---------- */
   function updateStats() {
     var users = MCStore.users();
     var reports = MCStore.reports();
+    var support = MCStore.support ? MCStore.support() : [];
     var staff = users.filter(function (person) { return person.role !== "developer"; }).length;
     var fresh = reports.filter(function (report) { return (report.status || "new") === "new"; }).length;
+    var freshSupport = support.filter(function (ticket) { return (ticket.status || "new") === "new"; }).length;
 
     var set = function (id, value) {
       var el = document.getElementById(id);
@@ -161,6 +207,7 @@
     set("statUsers", users.length);
     set("statStaff", staff);
     set("statReports", fresh);
+    set("statSupport", freshSupport);
   }
 
   function renderUsers() {
@@ -182,6 +229,15 @@
     host.innerHTML = reports.length
       ? reports.map(reportCard).join("")
       : '<div class="empty-state">Рапортов пока нет.</div>';
+  }
+
+  function renderSupport() {
+    var host = document.getElementById("adminSupport");
+    if (!host) return;
+    var tickets = MCStore.support ? MCStore.support() : [];
+    host.innerHTML = tickets.length
+      ? tickets.map(supportCard).join("")
+      : '<div class="empty-state">Обращений в поддержку пока нет.</div>';
   }
 
   /* ---------- Общая база ---------- */
@@ -246,6 +302,7 @@
   function refresh() {
     updateStats();
     renderUsers();
+    renderSupport();
     renderReports();
   }
 
@@ -351,6 +408,47 @@
       MCStore.deleteReport(remove.dataset.reportDelete);
       MCAuth.toast("Рапорт удалён", "ok");
       refresh();
+      return;
+    }
+
+    var supportStatus = event.target.closest("[data-support-status]");
+    if (supportStatus) {
+      try {
+        MCStore.updateSupport(supportStatus.dataset.support, { status: supportStatus.dataset.supportStatus });
+        MCAuth.toast("Статус обращения обновлён", "ok");
+        refresh();
+      } catch (error) {
+        MCAuth.toast(error.message || "Не удалось обновить обращение.", "error");
+      }
+      return;
+    }
+
+    var supportDelete = event.target.closest("[data-support-delete]");
+    if (supportDelete) {
+      if (!window.confirm("Удалить обращение в поддержку без возможности восстановления?")) return;
+      MCStore.deleteSupport(supportDelete.dataset.supportDelete);
+      MCAuth.toast("Обращение удалено", "ok");
+      refresh();
+    }
+  });
+
+  root.addEventListener("submit", function (event) {
+    var form = event.target.closest("[data-support-reply-form]");
+    if (!form) return;
+    event.preventDefault();
+
+    var id = form.getAttribute("data-support-reply-form");
+    var value = form.elements.reply.value.trim();
+    var ticket = MCStore.support().filter(function (item) { return item.id === id; })[0];
+    var patch = { reply: value };
+    if (value && ticket && (ticket.status || "new") === "new") patch.status = "read";
+
+    try {
+      MCStore.updateSupport(id, patch);
+      MCAuth.toast(value ? "Ответ сохранён" : "Ответ очищен", "ok");
+      refresh();
+    } catch (error) {
+      MCAuth.toast(error.message || "Не удалось сохранить ответ.", "error");
     }
   });
 
@@ -458,6 +556,7 @@
       '<div class="admin-stat"><b id="statUsers">0</b><span>всего аккаунтов</span></div>' +
       '<div class="admin-stat"><b id="statStaff">0</b><span>в составе корпуса</span></div>' +
       '<div class="admin-stat"><b id="statReports">0</b><span>новых рапортов</span></div>' +
+      '<div class="admin-stat"><b id="statSupport">0</b><span>новых обращений</span></div>' +
     "</div>" +
 
     '<div class="admin-toolbar">' +
@@ -480,6 +579,15 @@
           "<div><h2>Пользователи</h2><p>Должности, ранг, клан, статус, выговоры, редактирование и удаление аккаунтов. Должностей можно выдать сколько угодно.</p></div>" +
         "</div>" +
         '<div class="admin-users" id="adminUsers"></div>' +
+      "</div>" +
+    "</section>" +
+
+    '<section class="admin-section">' +
+      '<div class="panel">' +
+        '<div class="panel__head">' +
+          "<div><h2>Техническая поддержка</h2><p>Обращения гостей и участников. Ответ появится у пользователя в личном кабинете, а контакт гостя указан в карточке.</p></div>" +
+        "</div>" +
+        '<div class="admin-reports" id="adminSupport"></div>' +
       "</div>" +
     "</section>" +
 
