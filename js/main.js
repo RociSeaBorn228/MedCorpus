@@ -5,26 +5,46 @@
   "use strict";
 
   var root = document.documentElement;
-  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var reduceMotion = window.MCPrefs
+    ? window.MCPrefs.reduceMotion()
+    : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ---------- Тема ---------- */
   var themeToggle = document.getElementById("themeToggle");
 
-  function applyTheme(theme) {
-    root.dataset.theme = theme;
-    try { localStorage.setItem("medcorpus-theme", theme); } catch (e) { /* приватный режим */ }
-    if (themeToggle) {
-      themeToggle.setAttribute("aria-label", theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему");
-      themeToggle.setAttribute("aria-pressed", theme === "light" ? "true" : "false");
-    }
+  function themeLabel(theme) {
+    var key = theme === "dark" ? "header.themeLight" : "header.themeDark";
+    if (window.MCI18n) return MCI18n.t(key);
+    return theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему";
+  }
+
+  function syncThemeButton() {
+    if (!themeToggle) return;
+    var theme = root.dataset.theme === "light" ? "light" : "dark";
+    themeToggle.setAttribute("aria-label", themeLabel(theme));
+    themeToggle.setAttribute("aria-pressed", theme === "light" ? "true" : "false");
   }
 
   if (themeToggle) {
-    applyTheme(root.dataset.theme === "light" ? "light" : "dark");
+    syncThemeButton();
     themeToggle.addEventListener("click", function () {
-      applyTheme(root.dataset.theme === "dark" ? "light" : "dark");
+      var next = root.dataset.theme === "dark" ? "light" : "dark";
+      if (window.MCPrefs) {
+        MCPrefs.set({ theme: next });
+      } else {
+        root.dataset.theme = next;
+        try { localStorage.setItem("medcorpus-theme", next); } catch (e) { /* приватный режим */ }
+      }
+      syncThemeButton();
     });
   }
+
+  document.addEventListener("mcprefs:change", function () {
+    reduceMotion = window.MCPrefs
+      ? window.MCPrefs.reduceMotion()
+      : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    syncThemeButton();
+  });
 
   /* ---------- Мобильное меню ---------- */
   var nav = document.getElementById("nav");
