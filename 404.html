@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru" data-theme="dark">
 <head>
   <meta charset="UTF-8">
@@ -15,6 +15,7 @@
     document.documentElement.classList.add("js");
     try { var t = localStorage.getItem("medcorpus-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
+  <script src="js/prefs.js"></script>
 </head>
 <body>
   <main id="main">
@@ -47,7 +48,10 @@
 
   <script src="js/config.js" defer></script>
   <script src="js/store.js" defer></script>
+  <script src="js/i18n.js" defer></script>
   <script src="js/auth.js" defer></script>
+  <script src="js/settings.js" defer></script>
+  <script src="js/support.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>
