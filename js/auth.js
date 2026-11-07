@@ -13,6 +13,10 @@
       .replace(/'/g, "&#39;");
   }
 
+  function tr(key, fallback) {
+    return window.MCI18n ? MCI18n.t(key) : fallback;
+  }
+
   function isDirectPhoto(url) {
     var value = String(url || "").trim();
     if (/^data:image\/(png|jpe?g|gif|webp|avif|svg\+xml);/i.test(value)) return true;
@@ -100,11 +104,141 @@
     if (!Array.isArray(photos)) return "";
     var safe = photos.map(safeReportPhoto).filter(Boolean).slice(0, 3);
     if (!safe.length) return "";
+    var alt = tr("gallery.photoAlt", "Фото к рапорту");
     return '<div class="report-photos">' + safe.map(function (src, index) {
-      return '<a class="report-photo" href="' + esc(src) + '" target="_blank" rel="noopener">' +
-        '<img src="' + esc(src) + '" alt="Фото к рапорту ' + (index + 1) + '" loading="lazy">' +
+      return '<a class="report-photo" href="' + esc(src) + '" target="_blank" rel="noopener" data-photo-view="' + index + '">' +
+        '<img src="' + esc(src) + '" alt="' + esc(alt + " " + (index + 1)) + '" loading="lazy">' +
       "</a>";
     }).join("") + "</div>";
+  }
+
+  /* ---------- Просмотр фото рапорта ---------- */
+  var viewer = null;
+  var viewerState = { items: [], index: 0 };
+
+  function ensureViewer() {
+    if (viewer) return viewer;
+
+    viewer = document.createElement("dialog");
+    viewer.className = "photo-viewer";
+    viewer.id = "photoViewer";
+    viewer.innerHTML =
+      '<div class="photo-viewer__stage">' +
+        '<button class="photo-viewer__btn photo-viewer__close" type="button" data-photo-close>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>' +
+        '</button>' +
+        '<button class="photo-viewer__btn photo-viewer__nav photo-viewer__nav--prev" type="button" data-photo-prev>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>' +
+        '</button>' +
+        '<img class="photo-viewer__img" alt="">' +
+        '<button class="photo-viewer__btn photo-viewer__nav photo-viewer__nav--next" type="button" data-photo-next>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>' +
+        '</button>' +
+        '<p class="photo-viewer__count" aria-hidden="true"></p>' +
+      "</div>";
+    document.body.appendChild(viewer);
+
+    viewer.addEventListener("click", function (event) {
+      if (event.target.closest("[data-photo-close]")) { closeViewer(); return; }
+      if (event.target.closest("[data-photo-prev]")) { stepViewer(-1); return; }
+      if (event.target.closest("[data-photo-next]")) { stepViewer(1); return; }
+      if (event.target.closest(".photo-viewer__img")) return;
+      closeViewer();
+    });
+
+    viewer.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        stepViewer(-1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        stepViewer(1);
+      }
+    });
+
+    viewer.addEventListener("close", function () {
+      viewerState.items = [];
+      viewerState.index = 0;
+      var img = viewer.querySelector(".photo-viewer__img");
+      if (img) img.removeAttribute("src");
+    });
+
+    return viewer;
+  }
+
+  function updateViewer() {
+    if (!viewer) return;
+
+    var total = viewerState.items.length;
+    var index = viewerState.index;
+    var img = viewer.querySelector(".photo-viewer__img");
+    var count = viewer.querySelector(".photo-viewer__count");
+    var prev = viewer.querySelector("[data-photo-prev]");
+    var next = viewer.querySelector("[data-photo-next]");
+    var close = viewer.querySelector("[data-photo-close]");
+    var showNav = total > 1;
+
+    viewer.setAttribute("aria-label", tr("gallery.title", "Просмотр фото"));
+    if (close) close.setAttribute("aria-label", tr("gallery.close", "Закрыть фото"));
+    if (prev) {
+      prev.setAttribute("aria-label", tr("gallery.prev", "Предыдущее фото"));
+      prev.hidden = !showNav;
+    }
+    if (next) {
+      next.setAttribute("aria-label", tr("gallery.next", "Следующее фото"));
+      next.hidden = !showNav;
+    }
+    if (img) {
+      img.src = viewerState.items[index] || "";
+      img.alt = tr("gallery.photoAlt", "Фото к рапорту") + " " + (index + 1);
+    }
+    if (count) count.textContent = showNav ? (index + 1) + " / " + total : "";
+  }
+
+  function stepViewer(delta) {
+    if (!viewerState.items.length) return;
+    var total = viewerState.items.length;
+    viewerState.index = (viewerState.index + delta + total) % total;
+    updateViewer();
+  }
+
+  function openViewer(items, index) {
+    if (!Array.isArray(items) || !items.length) return;
+    var node = ensureViewer();
+    viewerState.items = items.slice();
+    viewerState.index = Math.max(0, Math.min(Number(index) || 0, items.length - 1));
+    updateViewer();
+
+    if (typeof node.showModal === "function") {
+      if (!node.open) node.showModal();
+    } else {
+      node.setAttribute("open", "");
+    }
+  }
+
+  function closeViewer() {
+    if (!viewer) return;
+    if (typeof viewer.close === "function") viewer.close();
+    else viewer.removeAttribute("open");
+  }
+
+  function initPhotoViewer() {
+    ensureViewer();
+
+    document.addEventListener("click", function (event) {
+      var link = event.target.closest ? event.target.closest(".report-photo") : null;
+      if (!link) return;
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      var gallery = link.closest(".report-photos");
+      if (!gallery) return;
+      var links = Array.prototype.slice.call(gallery.querySelectorAll(".report-photo"));
+      var items = links.map(function (item) { return item.getAttribute("href"); });
+      if (!items.length) return;
+
+      event.preventDefault();
+      openViewer(items, links.indexOf(link));
+    });
   }
 
   function initials(user) {
@@ -460,8 +594,10 @@
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", renderHeader);
+    document.addEventListener("DOMContentLoaded", initPhotoViewer);
   } else {
     renderHeader();
+    initPhotoViewer();
   }
 
   MCStore.subscribe(function () { renderHeader(); });
@@ -480,6 +616,7 @@
     avatar: avatar,
     bindAvatars: bindAvatars,
     photoGallery: photoGallery,
+    openPhotoViewer: openViewer,
     formatDate: formatDate,
     toast: toast,
     hashPassword: hashPassword,
