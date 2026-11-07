@@ -1,5 +1,6 @@
 /* ==========================================================================
-   Медкорпус Конохи — пользовательские настройки (тема, цвет, язык, чтение)
+   Медкорпус Конохи — пользовательские настройки
+   Тема, цвет, язык, чтение, плотность, контраст и эффекты.
    Загружается в <head> до отрисовки, чтобы не было мигания темы.
    ========================================================================== */
 (function () {
@@ -8,16 +9,31 @@
   var KEY = "medcorpus-prefs";
   var THEME_KEY = "medcorpus-theme";
 
+  var FONT_MIN = 14;
+  var FONT_MAX = 20;
+
   var DEFAULTS = {
     theme: "dark",
     accent: "green",
+    customColor: "#388e3c",
     lang: "ru",
     font: 16,
-    motion: "full"
+    motion: "full",
+    density: "comfortable",
+    contrast: "normal",
+    links: "normal",
+    effects: "full"
   };
 
   var LANGS = ["ru", "en", "uk", "be"];
-  var FONTS = [15, 16, 18];
+  var FONTS = [14, 15, 16, 17, 18, 19, 20];
+
+  var CUSTOM_LABEL = {
+    ru: "Свой цвет",
+    en: "Custom color",
+    uk: "Свій колір",
+    be: "Свой колер"
+  };
 
   /* 10 цветовых схем: id -> подписи и значения для тёмной/светлой темы */
   var ACCENTS = {
@@ -77,27 +93,43 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  function clampFont(value) {
+    var number = Math.round(Number(value));
+    if (isNaN(number)) return DEFAULTS.font;
+    return Math.max(FONT_MIN, Math.min(FONT_MAX, number));
+  }
+
+  function isHex(value) {
+    return /^#[0-9a-f]{6}$/i.test(String(value || ""));
+  }
+
   function readStored() {
     var prefs = clone(DEFAULTS);
     var raw = null;
+    var parsed = null;
 
     try {
       raw = localStorage.getItem(KEY);
       if (raw) {
-        var parsed = JSON.parse(raw);
+        parsed = JSON.parse(raw);
         if (parsed && typeof parsed === "object") {
-          if (parsed.theme === "light" || parsed.theme === "dark") prefs.theme = parsed.theme;
-          if (ACCENTS[parsed.accent]) prefs.accent = parsed.accent;
+          if (parsed.theme === "light" || parsed.theme === "dark" || parsed.theme === "system") prefs.theme = parsed.theme;
+          if (parsed.accent === "custom" || ACCENTS[parsed.accent]) prefs.accent = parsed.accent;
+          if (isHex(parsed.customColor)) prefs.customColor = String(parsed.customColor).toLowerCase();
           if (LANGS.indexOf(parsed.lang) !== -1) prefs.lang = parsed.lang;
-          if (FONTS.indexOf(Number(parsed.font)) !== -1) prefs.font = Number(parsed.font);
+          if (parsed.font != null && !isNaN(Number(parsed.font))) prefs.font = clampFont(parsed.font);
           if (parsed.motion === "reduce" || parsed.motion === "full") prefs.motion = parsed.motion;
+          if (parsed.density === "comfortable" || parsed.density === "compact") prefs.density = parsed.density;
+          if (parsed.contrast === "normal" || parsed.contrast === "high") prefs.contrast = parsed.contrast;
+          if (parsed.links === "normal" || parsed.links === "underline") prefs.links = parsed.links;
+          if (parsed.effects === "full" || parsed.effects === "reduced") prefs.effects = parsed.effects;
         }
       }
     } catch (e) { /* приватный режим или повреждённые данные */ }
 
     try {
       var legacy = localStorage.getItem(THEME_KEY);
-      if ((!raw || !JSON.parse(raw).theme) && (legacy === "light" || legacy === "dark")) {
+      if ((!parsed || !parsed.theme) && (legacy === "light" || legacy === "dark")) {
         prefs.theme = legacy;
       }
     } catch (e) { /* игнорируем */ }
@@ -106,8 +138,78 @@
   }
 
   var prefs = readStored();
+  var media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
-  function accentValues(id, theme) {
+  function resolveTheme() {
+    if (prefs.theme === "system") return media && !media.matches ? "light" : "dark";
+    return prefs.theme === "light" ? "light" : "dark";
+  }
+
+  /* ---------- Свой цвет: генерируем оттенки из одного HEX ---------- */
+  function hexToRgb(hex) {
+    var clean = String(hex || "").replace("#", "");
+    if (!/^[0-9a-f]{6}$/i.test(clean)) clean = "388e3c";
+    return [
+      parseInt(clean.slice(0, 2), 16),
+      parseInt(clean.slice(2, 4), 16),
+      parseInt(clean.slice(4, 6), 16)
+    ];
+  }
+
+  function rgbToHex(rgb) {
+    return "#" + rgb.map(function (part) {
+      var value = Math.max(0, Math.min(255, Math.round(part))).toString(16);
+      return value.length === 1 ? "0" + value : value;
+    }).join("");
+  }
+
+  function mix(hex, target, amount) {
+    var rgb = hexToRgb(hex);
+    return rgbToHex(rgb.map(function (part, index) {
+      return part + (target[index] - part) * amount;
+    }));
+  }
+
+  function luminance(hex) {
+    var rgb = hexToRgb(hex).map(function (part) {
+      var channel = part / 255;
+      return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+  }
+
+  function onColor(hex) {
+    return luminance(hex) > 0.55 ? "#111111" : "#ffffff";
+  }
+
+  function rgba(hex, alpha) {
+    var rgb = hexToRgb(hex);
+    return "rgba(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ", " + alpha + ")";
+  }
+
+  function customValues(hex, theme) {
+    var color = isHex(hex) ? hex.toLowerCase() : DEFAULTS.customColor;
+    if (theme === "light") {
+      var dark = mix(color, [0, 0, 0], 0.2);
+      return {
+        accent: dark,
+        accent2: mix(color, [0, 0, 0], 0.06),
+        soft: rgba(color, 0.12),
+        on: onColor(dark),
+        mid: color
+      };
+    }
+    return {
+      accent: color,
+      accent2: mix(color, [255, 255, 255], 0.28),
+      soft: rgba(color, 0.18),
+      on: onColor(color),
+      mid: mix(color, [255, 255, 255], 0.45)
+    };
+  }
+
+  function accentValues(id, theme, customColor) {
+    if (id === "custom") return customValues(customColor || DEFAULTS.customColor, theme);
     var item = ACCENTS[id] || ACCENTS.green;
     return theme === "light" ? item.light : item.dark;
   }
@@ -115,16 +217,17 @@
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(prefs));
-      localStorage.setItem(THEME_KEY, prefs.theme);
+      localStorage.setItem(THEME_KEY, resolveTheme());
     } catch (e) { /* приватный режим */ }
   }
 
   function apply() {
     var root = document.documentElement;
-    var theme = prefs.theme === "light" ? "light" : "dark";
-    var colors = accentValues(prefs.accent, theme);
+    var theme = resolveTheme();
+    var colors = accentValues(prefs.accent, theme, prefs.customColor);
 
     root.dataset.theme = theme;
+    root.dataset.themeMode = prefs.theme;
     root.dataset.accent = prefs.accent;
     root.dataset.lang = prefs.lang;
     root.setAttribute("lang", prefs.lang);
@@ -137,8 +240,12 @@
 
     root.style.fontSize = prefs.font + "px";
     root.classList.toggle("prefs-reduce-motion", prefs.motion === "reduce");
-    root.classList.toggle("prefs-text-small", prefs.font === FONTS[0]);
-    root.classList.toggle("prefs-text-large", prefs.font === FONTS[2] || prefs.font === FONTS[3]);
+    root.classList.toggle("prefs-text-small", prefs.font <= 14);
+    root.classList.toggle("prefs-text-large", prefs.font >= 19);
+    root.classList.toggle("prefs-compact", prefs.density === "compact");
+    root.classList.toggle("prefs-contrast", prefs.contrast === "high");
+    root.classList.toggle("prefs-underline", prefs.links === "underline");
+    root.classList.toggle("prefs-reduced-effects", prefs.effects === "reduced");
 
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", theme === "light" ? "#f6f7f6" : "#0a0e13");
@@ -156,11 +263,16 @@
 
   function set(patch) {
     if (!patch) return clone(prefs);
-    if (patch.theme === "light" || patch.theme === "dark") prefs.theme = patch.theme;
-    if (patch.accent && ACCENTS[patch.accent]) prefs.accent = patch.accent;
+    if (patch.theme === "light" || patch.theme === "dark" || patch.theme === "system") prefs.theme = patch.theme;
+    if (patch.accent === "custom" || ACCENTS[patch.accent]) prefs.accent = patch.accent;
+    if (isHex(patch.customColor)) prefs.customColor = String(patch.customColor).toLowerCase();
     if (patch.lang && LANGS.indexOf(patch.lang) !== -1) prefs.lang = patch.lang;
-    if (patch.font != null && FONTS.indexOf(Number(patch.font)) !== -1) prefs.font = Number(patch.font);
+    if (patch.font != null && !isNaN(Number(patch.font))) prefs.font = clampFont(patch.font);
     if (patch.motion === "reduce" || patch.motion === "full") prefs.motion = patch.motion;
+    if (patch.density === "comfortable" || patch.density === "compact") prefs.density = patch.density;
+    if (patch.contrast === "normal" || patch.contrast === "high") prefs.contrast = patch.contrast;
+    if (patch.links === "normal" || patch.links === "underline") prefs.links = patch.links;
+    if (patch.effects === "full" || patch.effects === "reduced") prefs.effects = patch.effects;
     save();
     apply();
     emit();
@@ -180,6 +292,18 @@
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
+  function syncSystemTheme() {
+    if (prefs.theme !== "system") return;
+    apply();
+    save();
+    emit();
+  }
+
+  if (media) {
+    if (typeof media.addEventListener === "function") media.addEventListener("change", syncSystemTheme);
+    else if (typeof media.addListener === "function") media.addListener(syncSystemTheme);
+  }
+
   apply();
 
   window.MCPrefs = {
@@ -187,6 +311,8 @@
     DEFAULTS: DEFAULTS,
     LANGS: LANGS.slice(),
     FONTS: FONTS.slice(),
+    FONT_MIN: FONT_MIN,
+    FONT_MAX: FONT_MAX,
     ACCENTS: ACCENTS,
     current: function () { return clone(prefs); },
     get: function (name) { return prefs[name]; },
@@ -194,15 +320,15 @@
     reset: reset,
     apply: apply,
     reduceMotion: reduceMotion,
+    resolvedTheme: resolveTheme,
+    isHex: isHex,
     accentLabel: function (id, lang) {
+      if (id === "custom") return CUSTOM_LABEL[lang] || CUSTOM_LABEL.ru;
       var item = ACCENTS[id] || ACCENTS.green;
       return item[lang] || item.ru;
     },
     fontStep: function (direction) {
-      var index = FONTS.indexOf(prefs.font);
-      if (index === -1) index = 1;
-      index = Math.max(0, Math.min(FONTS.length - 1, index + direction));
-      return set({ font: FONTS[index] }).font;
+      return set({ font: clampFont(prefs.font + direction) }).font;
     }
   };
 })();
