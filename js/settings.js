@@ -33,6 +33,30 @@
     return node;
   }
 
+  function optionRow(titleKey, hintKey, name, options) {
+    var row = el("div", "settings-row");
+    var text = el("div", "settings-row__text");
+    text.appendChild(keyed("b", titleKey));
+    if (hintKey) text.appendChild(keyed("p", hintKey));
+    var group = el("div", "segmented");
+    group.setAttribute("role", "group");
+    options.forEach(function (pair) {
+      var btn = keyed("button", pair[1], "segmented__btn");
+      btn.type = "button";
+      btn.dataset[name] = pair[0];
+      btn.addEventListener("click", function () {
+        var patch = {};
+        patch[name] = pair[0];
+        MCPrefs.set(patch);
+        sync();
+      });
+      group.appendChild(btn);
+    });
+    row.appendChild(text);
+    row.appendChild(group);
+    return row;
+  }
+
   function buildTrigger() {
     var actions = document.querySelector(".header-actions");
     if (!actions || document.getElementById("settingsToggle")) return;
@@ -87,7 +111,7 @@
     modeText.appendChild(keyed("p", "settings.modeHint"));
     var modeGroup = el("div", "segmented");
     modeGroup.setAttribute("role", "group");
-    [["dark", "settings.dark"], ["light", "settings.light"]].forEach(function (pair) {
+    [["dark", "settings.dark"], ["light", "settings.light"], ["system", "settings.system"]].forEach(function (pair) {
       var btn = keyed("button", pair[1], "segmented__btn");
       btn.type = "button";
       btn.dataset.mode = pair[0];
@@ -128,6 +152,63 @@
       grid.appendChild(btn);
     });
     accentSection.appendChild(grid);
+
+    /* Свой цвет */
+    var customRow = el("div", "settings-custom");
+    customRow.id = "customColorRow";
+    var customText = el("div", "settings-custom__text");
+    customText.appendChild(keyed("span", "settings.customColor", "settings-custom__label"));
+    customText.appendChild(keyed("span", "settings.customColorHint", "settings-custom__hint"));
+
+    var customControls = el("div", "settings-custom__controls");
+    var colorInput = el("input", "settings-color");
+    colorInput.type = "color";
+    colorInput.id = "prefCustomColor";
+    var hexInput = el("input", "settings-hex");
+    hexInput.type = "text";
+    hexInput.id = "prefCustomHex";
+    hexInput.maxLength = 7;
+    hexInput.spellcheck = false;
+    hexInput.setAttribute("aria-label", t("settings.customColor"));
+    hexInput.setAttribute("data-i18n-aria", "settings.customColor");
+    var applyBtn = keyed("button", "settings.applyColor", "btn btn--ghost btn--small");
+    applyBtn.type = "button";
+    var colorError = keyed("span", "settings.colorInvalid", "settings-custom__error");
+    colorError.hidden = true;
+
+    function applyCustom(value) {
+      var hex = String(value || "").trim();
+      if (hex.charAt(0) !== "#") hex = "#" + hex;
+      if (!MCPrefs.isHex(hex)) {
+        colorError.hidden = false;
+        return false;
+      }
+      colorError.hidden = true;
+      hex = hex.toLowerCase();
+      hexInput.value = hex;
+      colorInput.value = hex;
+      MCPrefs.set({ accent: "custom", customColor: hex });
+      sync();
+      return true;
+    }
+
+    colorInput.addEventListener("input", function () { applyCustom(colorInput.value); });
+    applyBtn.addEventListener("click", function () { applyCustom(hexInput.value); });
+    hexInput.addEventListener("change", function () { applyCustom(hexInput.value); });
+    hexInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        applyCustom(hexInput.value);
+      }
+    });
+
+    customControls.appendChild(colorInput);
+    customControls.appendChild(hexInput);
+    customControls.appendChild(applyBtn);
+    customRow.appendChild(customText);
+    customRow.appendChild(customControls);
+    customRow.appendChild(colorError);
+    accentSection.appendChild(customRow);
     body.appendChild(accentSection);
 
     /* Язык */
@@ -160,26 +241,30 @@
     var reading = el("section", "settings-section");
     reading.appendChild(keyed("h3", "settings.reading", "settings-section__title"));
 
-    var textRow = el("div", "settings-row");
-    textRow.appendChild(keyed("b", "settings.textSize", "settings-row__label"));
-    var fontGroup = el("div", "segmented");
-    fontGroup.setAttribute("role", "group");
-    [
-      [15, "settings.small"],
-      [16, "settings.medium"],
-      [18, "settings.large"]
-    ].forEach(function (pair) {
-      var btn = keyed("button", pair[1], "segmented__btn");
-      btn.type = "button";
-      btn.dataset.font = String(pair[0]);
-      btn.addEventListener("click", function () {
-        MCPrefs.set({ font: pair[0] });
-        sync();
-      });
-      fontGroup.appendChild(btn);
+    var textBlock = el("div", "settings-slider");
+    var textHead = el("div", "settings-slider__head");
+    var textLabels = el("div", "settings-row__text");
+    textLabels.appendChild(keyed("b", "settings.textSize"));
+    textLabels.appendChild(keyed("p", "settings.textSizeHint"));
+    var fontValue = el("output", "settings-slider__value", "16 px");
+    fontValue.id = "prefFontValue";
+    textHead.appendChild(textLabels);
+    textHead.appendChild(fontValue);
+
+    var slider = el("input", "settings-range");
+    slider.type = "range";
+    slider.id = "prefFont";
+    slider.min = String(MCPrefs.FONT_MIN);
+    slider.max = String(MCPrefs.FONT_MAX);
+    slider.step = "1";
+    slider.addEventListener("input", function () {
+      MCPrefs.set({ font: slider.value });
+      sync();
     });
-    textRow.appendChild(fontGroup);
-    reading.appendChild(textRow);
+
+    textBlock.appendChild(textHead);
+    textBlock.appendChild(slider);
+    reading.appendChild(textBlock);
 
     var check = el("label", "settings-check");
     var box = el("input");
@@ -196,6 +281,28 @@
     check.appendChild(checkText);
     reading.appendChild(check);
     body.appendChild(reading);
+
+    /* Интерфейс */
+    var ui = el("section", "settings-section");
+    ui.appendChild(keyed("h3", "settings.interface", "settings-section__title"));
+    ui.appendChild(keyed("p", "settings.interfaceHint", "settings-section__hint"));
+    ui.appendChild(optionRow("settings.density", "settings.densityHint", "density", [
+      ["comfortable", "settings.comfortable"],
+      ["compact", "settings.compact"]
+    ]));
+    ui.appendChild(optionRow("settings.contrast", "settings.contrastHint", "contrast", [
+      ["normal", "settings.contrastNormal"],
+      ["high", "settings.contrastHigh"]
+    ]));
+    ui.appendChild(optionRow("settings.links", "settings.linksHint", "links", [
+      ["normal", "settings.linksNormal"],
+      ["underline", "settings.linksUnderline"]
+    ]));
+    ui.appendChild(optionRow("settings.effects", "settings.effectsHint", "effects", [
+      ["full", "settings.effectsFull"],
+      ["reduced", "settings.effectsReduced"]
+    ]));
+    body.appendChild(ui);
 
     /* Поддержка */
     var help = el("section", "settings-section settings-section--support");
@@ -258,10 +365,26 @@
       btn.setAttribute("aria-pressed", active ? "true" : "false");
     });
 
-    dialog.querySelectorAll("[data-font]").forEach(function (btn) {
-      var active = Number(btn.dataset.font) === Number(prefs.font);
-      btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    var customRow = dialog.querySelector("#customColorRow");
+    if (customRow) {
+      customRow.classList.toggle("is-active", prefs.accent === "custom");
+      var colorInput = dialog.querySelector("#prefCustomColor");
+      var hexInput = dialog.querySelector("#prefCustomHex");
+      if (colorInput) colorInput.value = prefs.customColor;
+      if (hexInput) hexInput.value = prefs.customColor;
+    }
+
+    var slider = dialog.querySelector("#prefFont");
+    if (slider) slider.value = String(prefs.font);
+    var fontValue = dialog.querySelector("#prefFontValue");
+    if (fontValue) fontValue.textContent = prefs.font + " px";
+
+    ["density", "contrast", "links", "effects"].forEach(function (name) {
+      dialog.querySelectorAll("[data-" + name + "]").forEach(function (btn) {
+        var active = btn.dataset[name] === prefs[name];
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+      });
     });
 
     var box = dialog.querySelector("#prefReduceMotion");
